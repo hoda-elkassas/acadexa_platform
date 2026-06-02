@@ -1,6 +1,6 @@
 # ACADEXA Documentation
 
-![ACADEXA Logo](assets/images/Acadexa_Logo.png "ACADEXA Logo")
+![ACADEXA Logo](/frontend/assets/images/Acadexa_Logo.png "ACADEXA Logo")
 
 ## 🎓 ACADEXA — Offline Academic Expert System
 
@@ -34,7 +34,7 @@ graph TD
    E --> F
    E --> G[📂 Supabase Storage]
    D --> H[⚡ Redis Cache]
-   B --> I[📨 Background Jobs (Celery/APScheduler)]
+   B --> I[📨 Background Jobs]
 ```
 
 ### 🧩 Component Breakdown
