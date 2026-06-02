@@ -1,45 +1,113 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# ==================================================
+# PRODUCTION FLUTTER + BACKEND + SUPABASE
+# ==================================================
+
+# -------------------------------
+# OS / SYSTEM
+# -------------------------------
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# -------------------------------
+# IDEs
+# -------------------------------
 .idea/
+.vscode/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.history
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# -------------------------------
+# FLUTTER / DART CORE
+# -------------------------------
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
-/coverage/
+build/
+**/build/
+coverage/
 
-# Symbolication related
-app.*.symbols
+# -------------------------------
+# ENVIRONMENT SECRETS (CRITICAL)
+# -------------------------------
+.env
+.env.*
+*.env
 
-# Obfuscation related
-app.*.map.json
+# -------------------------------
+# BACKEND (Python / Node safe layer)
+# -------------------------------
+backend/.env
+backend/.venv/
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/*.log
+backend/node_modules/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# -------------------------------
+# SUPABASE (IMPORTANT SECURITY LAYER)
+# -------------------------------
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+supabase/.secrets
+supabase/config.toml.local
+
+# ⚠️ DO NOT commit service role keys or anon secrets backups
+*.supabase
+*.db-journal
+
+# -------------------------------
+# ANDROID
+# -------------------------------
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# -------------------------------
+# IOS
+# -------------------------------
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/.last_build_id
+
+# -------------------------------
+# MACOS / WINDOWS / LINUX
+# -------------------------------
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# -------------------------------
+# WEB
+# -------------------------------
+web/.dart_tool/
+
+# -------------------------------
+# FIREBASE / SUPABASE GENERATED FILES
+# -------------------------------
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+
+# -------------------------------
+# LOGS / DEBUG
+# -------------------------------
+*.log
+debug.log
+
+# -------------------------------
+# LOCAL DEV FLAGS
+# -------------------------------
+*.local
+*.dev
