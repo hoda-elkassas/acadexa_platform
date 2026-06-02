@@ -1,6 +1,6 @@
 # ACADEXA Documentation
 
-![ACADEXA Logo](/frontend/assets/images/Acadexa_Logo.png "ACADEXA Logo")
+![ACADEXA Logo](frontend/assets/images/Acadexa_Logo.png "ACADEXA Logo")
 
 ## 🎓 ACADEXA — Offline Academic Expert System
 
