@@ -1,6 +1,5 @@
 // file: lib/features/study_plan/screens/plan_comparison_report_screen.dart
 import 'package:flutter/material.dart';
-import '../../../core/constants/curriculum_strings.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
 import '../../../core/themes/app_radius.dart';
@@ -29,8 +28,6 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
   StudyPlanModel? _selectedPlan;
 
   // Comparison data
-  List<CourseModel> _currentPlanCourses = [];
-  List<CourseModel> _comparePlanCourses = [];
   bool _loadingCourses = false;
 
   // Analysis result
@@ -119,8 +116,6 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
     final compareSum = compare.fold<int>(0, (sum, c) => sum + c.creditHours);
 
     setState(() {
-      _currentPlanCourses = current;
-      _comparePlanCourses = compare;
       _addedCourses = added;
       _deletedCourses = deleted;
       _modifiedCourses = modified;

@@ -1,7 +1,6 @@
 // file: lib/features/study_plan/screens/study_plan_structure_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/constants/curriculum_strings.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
 import '../../../core/themes/app_radius.dart';

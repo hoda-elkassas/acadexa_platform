@@ -99,10 +99,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           activePrograms = (programsRes as List).length;
         } catch (_) {}
 
-        int low = 0, medium = 0, high = 0, critical = 0;
+        int high = 0, critical = 0;
         for (final a in latestAnalysis) {
           final err = int.tryParse(a['errors_count']?.toString() ?? '0') ?? 0;
-          final warn = int.tryParse(a['warnings_count']?.toString() ?? '0') ?? 0;
           final gpaVal = a['calculated_gpa'];
           final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
 
@@ -110,10 +109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             critical++;
           } else if (err > 0 || gpa < 2.0) {
             high++;
-          } else if (warn > 0) {
-            medium++;
-          } else {
-            low++;
           }
         }
 

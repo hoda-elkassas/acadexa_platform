@@ -1,5 +1,4 @@
 // file: lib/data/services/study_plan_service.dart
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/study_plan_model.dart';
 import 'base_service.dart';
 

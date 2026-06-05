@@ -1,5 +1,4 @@
 // file: lib/data/services/course_service.dart
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course_model.dart';
 import '../models/course_conflict_model.dart';
 import '../models/course_equivalent_model.dart';

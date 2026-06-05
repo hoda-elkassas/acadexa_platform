@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/curriculum_strings.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_radius.dart';
-import '../../../core/themes/app_typography.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../data/models/course_model.dart';
 import '../../../data/models/prerequisite_model.dart';
