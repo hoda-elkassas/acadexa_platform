@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
+import '../../../core/themes/app_radius.dart';
 import '../../../core/themes/app_typography.dart';
 import '../../../shared/widgets/widgets.dart';
 import 'admin_dashboard_screen.dart';
@@ -157,10 +158,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         critical: critical > 0 ? critical : 1,
       );
 
-      _advisees = const [
-        AdviseeRowData(id: '1', name: 'أحمد علي السالم', studentId: '442109843', program: 'علوم حاسب', gpa: 3.84, completedHours: 92, riskLevel: AcRiskLevel.low, lastActivity: null ?? DateTime.now()),
-        AdviseeRowData(id: '2', name: 'سلمان محمد القرني', studentId: '441094032', program: 'هندسة برمجيات', gpa: 2.12, completedHours: 64, riskLevel: AcRiskLevel.medium, lastActivity: null ?? DateTime.now()),
-        AdviseeRowData(id: '3', name: 'عبد الله فهد الشهري', studentId: '440182743', program: 'نظم معلومات', gpa: 1.84, completedHours: 112, riskLevel: AcRiskLevel.high, lastActivity: null ?? DateTime.now()),
+      _advisees = [
+        AdviseeRowData(id: '1', name: 'أحمد علي السالم', studentId: '442109843', program: 'علوم حاسب', gpa: 3.84, completedHours: 92, riskLevel: AcRiskLevel.low, lastActivity: DateTime.now()),
+        AdviseeRowData(id: '2', name: 'سلمان محمد القرني', studentId: '441094032', program: 'هندسة برمجيات', gpa: 2.12, completedHours: 64, riskLevel: AcRiskLevel.medium, lastActivity: DateTime.now()),
+        AdviseeRowData(id: '3', name: 'عبد الله فهد الشهري', studentId: '440182743', program: 'نظم معلومات', gpa: 1.84, completedHours: 112, riskLevel: AcRiskLevel.high, lastActivity: DateTime.now()),
       ];
     } catch (e) {
       //
@@ -262,23 +263,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             name: 'عبد الرحمن خالد الدوسري',
             studentId: '442109843',
             program: 'بكالوريوس علوم الحاسب والمعلومات',
-            currentLevel: 6,
+            level: '6',
             avatarUrl: null,
           ),
-          kpiData: const StudentKpiData(
-            cumulativeGpa: 3.42,
+          summaryData: const AcademicSummaryData(
+            gpa: 3.42,
+            maxGpa: 4.0,
             completedHours: 94,
-            registeredHoursThisTerm: 16,
-            standing: AcademicStanding.goodStanding,
+            requiredHours: 134,
+            registeredCourses: 5,
+            semesterNumber: 6,
+            academicStanding: 'وضع أكاديمي جيد',
+            riskLevel: AcRiskLevel.low,
           ),
-          academicLoad: const StudentLoadLimits(
-            minHours: 12,
-            maxHours: 18,
-            levelPrescribedHours: 15,
-          ),
-          registeredCourses: const [],
-          suggestedCourses: const [],
-          timelineEvents: const [],
+          recommendedCourses: const [],
+          currentCourses: const [],
+          gpaTrend: const [],
           onRefresh: _loadDashboardData,
         );
     }

@@ -233,7 +233,7 @@ class _ManagePrerequisitesScreenState extends State<ManagePrerequisitesScreen> {
                           label: 'تزامن دراسي',
                           cellBuilder: (pr, _) {
                             final label = pr.mustBePriorTerm ? 'في فصل سابق' : 'يسمح بالتزامن';
-                            final color = pr.mustBePriorTerm ? AppColors.error500 : AppColors.success500;
+                            final color = pr.mustBePriorTerm ? AppColors.danger500 : AppColors.success500;
                             return Text(
                               label,
                               style: AppTypography.bodyMedium.copyWith(color: color, fontWeight: FontWeight.bold),

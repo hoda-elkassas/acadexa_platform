@@ -277,7 +277,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Row(
-                                baseline: TextBaseline.alphabetic,
+                                textBaseline: TextBaseline.alphabetic,
                                 crossAxisAlignment: CrossAxisAlignment.baseline,
                                 children: [
                                   Text(

@@ -155,7 +155,7 @@ class _AddEditElectiveGroupDialogState extends State<AddEditElectiveGroupDialog>
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
-                      const Text('طريقة احتساب المتطلبات: ', style: AppTypography.bodyMedium),
+                      Text('طريقة احتساب المتطلبات: ', style: AppTypography.bodyMedium),
                       const Spacer(),
                       ChoiceChip(
                         label: const Text('بالساعات المعتمدة'),
@@ -240,7 +240,7 @@ class _AddEditElectiveGroupDialogState extends State<AddEditElectiveGroupDialog>
                     )
                   else
                     Container(
-                      maxHeight: 180,
+                      constraints: const BoxConstraints(maxHeight: 180),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.border),
                         borderRadius: AppRadius.brMd,

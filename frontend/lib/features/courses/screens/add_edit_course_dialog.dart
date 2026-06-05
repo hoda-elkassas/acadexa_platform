@@ -291,7 +291,7 @@ class _AddEditCourseDialogState extends State<AddEditCourseDialog> {
                           ),
                           ...scales.map((s) => DropdownMenuItem(
                                 value: s.id,
-                                child: Text(s.name),
+                                child: Text(s.nameAr),
                               )),
                         ],
                       );
