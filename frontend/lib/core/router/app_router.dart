@@ -1,5 +1,11 @@
 // file: lib/core/router/app_router.dart
 import 'package:flutter/material.dart';
+import '../../features/auth/screens/splash_screen.dart';
+import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/otp_verification_screen.dart';
+import '../../features/auth/screens/reset_password_screen.dart';
+import '../../features/dashboard/screens/dashboard_screen.dart';
 
 // ─── Route names ─────────────────────────────────────────────────────────
 abstract class AppRoutes {
@@ -37,61 +43,102 @@ class AdviseeDetailArgs {
   final String adviseeName;
 }
 
-// ─── AppRouter (Navigator 1.0 – swap for GoRouter as preferred) ──────────
+// ─── AppRouter ───────────────────────────────────────────────────────────
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.splash:
         return _fadeRoute(
-          const _PlaceholderScreen(title: 'Splash'),
+          Builder(
+            builder: (context) => SplashScreen(
+              onInitComplete: () {
+                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+              },
+            ),
+          ),
           settings,
         );
 
       case AppRoutes.login:
         return _slideRoute(
-          const _PlaceholderScreen(title: 'Login'),
+          Builder(
+            builder: (context) => LoginScreen(
+              onLogin: ({required email, required password, required rememberMe}) async {
+                Navigator.of(context).pushReplacementNamed(AppRoutes.adminDashboard);
+              },
+              onForgotPassword: () {
+                Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
+              },
+            ),
+          ),
           settings,
         );
 
       case AppRoutes.forgotPassword:
         return _slideRoute(
-          const _PlaceholderScreen(title: 'Forgot Password'),
+          Builder(
+            builder: (context) => ForgotPasswordScreen(
+              onSendCode: (email) async {
+                Navigator.of(context).pushNamed(
+                  AppRoutes.otpVerification,
+                  arguments: OtpArgs(email: email),
+                );
+              },
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
           settings,
         );
 
       case AppRoutes.otpVerification:
+        final args = settings.arguments as OtpArgs? ?? const OtpArgs(email: '');
         return _slideRoute(
-          const _PlaceholderScreen(title: 'OTP'),
+          Builder(
+            builder: (context) => OtpVerificationScreen(
+              email: args.email,
+              onVerify: (otp) async {
+                Navigator.of(context).pushReplacementNamed(AppRoutes.resetPassword);
+              },
+              onResend: () async {},
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
           settings,
         );
 
       case AppRoutes.resetPassword:
         return _slideRoute(
-          const _PlaceholderScreen(title: 'Reset Password'),
+          Builder(
+            builder: (context) => ResetPasswordScreen(
+              onReset: ({required newPassword, required confirmPassword}) async {
+                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+              },
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
           settings,
         );
 
       case AppRoutes.studentDashboard:
-        return _fadeRoute(
-          const _PlaceholderScreen(title: 'Student Dashboard'),
-          settings,
-        );
-
       case AppRoutes.advisorDashboard:
-        return _fadeRoute(
-          const _PlaceholderScreen(title: 'Advisor Dashboard'),
-          settings,
-        );
-
       case AppRoutes.adminDashboard:
         return _fadeRoute(
-          const _PlaceholderScreen(title: 'Admin Dashboard'),
+          const DashboardScreen(),
           settings,
         );
 
       default:
         return _slideRoute(
-          const _PlaceholderScreen(title: '404 – Not Found'),
+          Scaffold(
+            appBar: AppBar(title: const Text('404 – غير موجود')),
+            body: const Center(child: Text('الصفحة المطلوبة غير موجودة.')),
+          ),
           settings,
         );
     }
@@ -136,17 +183,3 @@ class AppRouter {
   }
 }
 
-// ─── Placeholder (replace with real screens) ─────────────────────────────
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
-    );
-  }
-}
