@@ -34,6 +34,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<AdviseeRowData> _advisees = [];
   RiskDistributionData? _riskDistribution;
 
+  // Student Data states
+  StudentProfileData? _studentProfile;
+  AcademicSummaryData? _studentSummary;
+  List<RecommendedCourseData> _recommendedCourses = [];
+  List<CurrentCourseData> _currentCourses = [];
+  List<GpaTrendPoint> _gpaTrend = [];
+
   @override
   void initState() {
     super.initState();
@@ -59,112 +66,300 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadDashboardData() async {
-    // Load counts and tables for Admin/Advisor
     try {
-      // Fetch counts dynamically from Supabase
-      final studentsRes = await _supabase.from('students').select('id, gpa, risk_level');
-      final studentsList = studentsRes as List;
-      final totalStudents = studentsList.length;
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
 
-      final advisorsRes = await _supabase.from('academic_advisors').select('id');
-      final totalAdvisors = (advisorsRes as List).length;
+      if (_selectedRole == 'admin') {
+        final studentsSummaryRes = await _supabase.from('student_full_summary').select();
+        final studentsSummary = studentsSummaryRes as List;
 
-      final programsRes = await _supabase.from('programs').select('id');
-      final activePrograms = (programsRes as List).length;
+        final latestAnalysisRes = await _supabase.from('student_latest_analysis').select();
+        final latestAnalysis = latestAnalysisRes as List;
 
-      // Count risk categories
-      int low = 0, medium = 0, high = 0, critical = 0;
-      double gpaSum = 0.0;
-      for (final st in studentsList) {
-        final gpa = double.tryParse(st['gpa']?.toString() ?? '0.0') ?? 0.0;
-        gpaSum += gpa;
-        
-        final rStr = st['risk_level']?.toString().toLowerCase() ?? 'low';
-        if (rStr.contains('critical')) {
-          critical++;
-        } else if (rStr.contains('high')) {
-          high++;
-        } else if (rStr.contains('medium')) {
-          medium++;
-        } else {
-          low++;
+        final totalStudents = studentsSummary.length;
+
+        double gpaSum = 0.0;
+        for (final s in studentsSummary) {
+          final gpaVal = s['calculated_gpa'] ?? s['cumulative_gpa'];
+          final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+          gpaSum += gpa;
         }
-      }
-      final avgGpa = totalStudents > 0 ? gpaSum / totalStudents : 3.12;
+        final avgGpa = totalStudents > 0 ? gpaSum / totalStudents : 0.0;
 
-      // Build KPI
-      _adminKpi = AdminKpiData(
-        totalStudents: totalStudents > 0 ? totalStudents : 1420,
-        totalAdvisors: totalAdvisors > 0 ? totalAdvisors : 48,
-        activePrograms: activePrograms > 0 ? activePrograms : 12,
-        atRiskStudents: (high + critical) > 0 ? (high + critical) : 64,
-        avgGpaInstitution: avgGpa,
-        registrationRate: 0.94,
-        graduationRate: 0.88,
-        retentionRate: 0.92,
-      );
+        int totalAdvisors = 0;
+        try {
+          final advisorsRes = await _supabase.from('academic_advisors').select('id');
+          totalAdvisors = (advisorsRes as List).length;
+        } catch (_) {}
 
-      // Fetch Departments
-      final deptsRes = await _supabase.from('departments').select('id, name_ar');
-      _adminDepts = (deptsRes as List).map((d) {
-        return DepartmentData(
-          name: d['name_ar']?.toString() ?? '',
-          studentCount: 240,
-          avgGpa: 3.24,
-          atRiskPercent: 0.12,
+        int activePrograms = 0;
+        try {
+          final programsRes = await _supabase.from('programs').select('id');
+          activePrograms = (programsRes as List).length;
+        } catch (_) {}
+
+        int low = 0, medium = 0, high = 0, critical = 0;
+        for (final a in latestAnalysis) {
+          final err = int.tryParse(a['errors_count']?.toString() ?? '0') ?? 0;
+          final warn = int.tryParse(a['warnings_count']?.toString() ?? '0') ?? 0;
+          final gpaVal = a['calculated_gpa'];
+          final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+
+          if (err >= 3 || gpa < 1.5) {
+            critical++;
+          } else if (err > 0 || gpa < 2.0) {
+            high++;
+          } else if (warn > 0) {
+            medium++;
+          } else {
+            low++;
+          }
+        }
+
+        _adminKpi = AdminKpiData(
+          totalStudents: totalStudents,
+          totalAdvisors: totalAdvisors,
+          activePrograms: activePrograms,
+          atRiskStudents: high + critical,
+          avgGpaInstitution: avgGpa,
+          registrationRate: totalStudents > 0 ? 0.95 : 0.0,
+          graduationRate: 0.85,
+          retentionRate: 0.90,
         );
-      }).toList();
-      if (_adminDepts.isEmpty) {
-        _adminDepts = const [
-          DepartmentData(name: 'علوم الحاسب والمعلومات', studentCount: 480, avgGpa: 3.25, atRiskPercent: 0.08),
-          DepartmentData(name: 'الهندسة الكهربائية والاتصالات', studentCount: 310, avgGpa: 3.05, atRiskPercent: 0.15),
-          DepartmentData(name: 'إدارة الأعمال والمحاسبة', studentCount: 630, avgGpa: 2.95, atRiskPercent: 0.22),
+
+        final Map<String, List<dynamic>> deptGroups = {};
+        for (final s in studentsSummary) {
+          final dName = s['department_name']?.toString() ?? 'غير محدد';
+          deptGroups.putIfAbsent(dName, () => []).add(s);
+        }
+
+        _adminDepts = deptGroups.entries.map((entry) {
+          final name = entry.key;
+          final list = entry.value;
+          final count = list.length;
+          double deptGpaSum = 0.0;
+          for (final s in list) {
+            final gpaVal = s['calculated_gpa'] ?? s['cumulative_gpa'];
+            deptGpaSum += double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+          }
+          final deptAvgGpa = count > 0 ? deptGpaSum / count : 0.0;
+
+          final studentIdsInDept = list.map((s) => s['id']?.toString()).toSet();
+          final deptAnalysis = latestAnalysis.where((a) => studentIdsInDept.contains(a['student_id']?.toString()));
+          final deptAtRisk = deptAnalysis.where((a) {
+            final err = int.tryParse(a['errors_count']?.toString() ?? '0') ?? 0;
+            final gpaVal = a['calculated_gpa'];
+            final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+            return err > 0 || gpa < 2.0;
+          }).length;
+          final atRiskPercent = count > 0 ? deptAtRisk / count : 0.0;
+
+          return DepartmentData(
+            name: name,
+            studentCount: count,
+            avgGpa: deptAvgGpa,
+            atRiskPercent: atRiskPercent,
+          );
+        }).toList();
+
+        final Map<String, int> enrollmentGroups = {};
+        for (final s in studentsSummary) {
+          final year = s['enrollment_year']?.toString() ?? 'غير معروف';
+          enrollmentGroups[year] = (enrollmentGroups[year] ?? 0) + 1;
+        }
+        final sortedYears = enrollmentGroups.keys.toList()..sort();
+        _enrollmentTrend = sortedYears.map((yr) {
+          return EnrollmentTrendPoint(
+            semester: 'سنة $yr',
+            count: enrollmentGroups[yr] ?? 0,
+          );
+        }).toList();
+
+        _recentActivities = [
+          SystemActivityItem(
+            id: '1',
+            message: 'تم تحديث شروط ومعدلات التخرج لقسم علوم الحاسب',
+            type: AcStatusType.success,
+            timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+          ),
         ];
+      } else if (_selectedRole == 'advisor') {
+        String advisorName = 'د. خالد بن عبد الرحمن السليمان';
+        String advisorDept = 'قسم علوم الحاسب ومعلومات الشبكات';
+
+        try {
+          final profile = await _supabase.from('v_users_with_roles').select().eq('id', user.id).maybeSingle();
+          if (profile != null) {
+            advisorName = profile['full_name']?.toString() ?? advisorName;
+            advisorDept = profile['department_name']?.toString() ?? advisorDept;
+          }
+        } catch (_) {}
+
+        final studentsSummaryRes = await _supabase.from('student_full_summary').select();
+        final studentsSummary = studentsSummaryRes as List;
+
+        final latestAnalysisRes = await _supabase.from('student_latest_analysis').select();
+        final latestAnalysis = latestAnalysisRes as List;
+
+        final totalAdvisees = studentsSummary.length;
+
+        int low = 0, medium = 0, high = 0, critical = 0;
+        double gpaSum = 0.0;
+
+        _advisees = studentsSummary.map((s) {
+          final sId = s['id']?.toString() ?? '';
+          final name = s['name']?.toString() ?? '';
+          final code = s['student_code']?.toString() ?? '';
+          final prog = s['program_name']?.toString() ?? '';
+          final gpaVal = s['calculated_gpa'] ?? s['cumulative_gpa'];
+          final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+          gpaSum += gpa;
+          final completed = int.tryParse(s['total_passed_hours']?.toString() ?? '0') ?? 0;
+
+          final Map<String, dynamic> analysis = latestAnalysis.firstWhere(
+            (a) => a['student_id']?.toString() == sId,
+            orElse: () => <String, dynamic>{},
+          ) as Map<String, dynamic>;
+
+          final err = int.tryParse(analysis['errors_count']?.toString() ?? '0') ?? 0;
+          final warn = int.tryParse(analysis['warnings_count']?.toString() ?? '0') ?? 0;
+
+          AcRiskLevel risk = AcRiskLevel.low;
+          if (err >= 3 || gpa < 1.5) {
+            risk = AcRiskLevel.critical;
+            critical++;
+          } else if (err > 0 || gpa < 2.0) {
+            risk = AcRiskLevel.high;
+            high++;
+          } else if (warn > 0) {
+            risk = AcRiskLevel.medium;
+            medium++;
+          } else {
+            low++;
+          }
+
+          return AdviseeRowData(
+            id: sId,
+            name: name,
+            studentId: code,
+            program: prog,
+            gpa: gpa,
+            completedHours: completed,
+            riskLevel: risk,
+            lastActivity: DateTime.tryParse(analysis['analyzed_at']?.toString() ?? '') ?? DateTime.now(),
+          );
+        }).toList();
+
+        _advisorProfile = AdvisorProfileData(
+          name: advisorName,
+          department: advisorDept,
+          adviseeCount: totalAdvisees,
+        );
+
+        _advisorKpi = AdvisorKpiData(
+          totalAdvisees: totalAdvisees,
+          atRiskCount: high + critical,
+          pendingRequests: 0,
+          averageGpa: totalAdvisees > 0 ? gpaSum / totalAdvisees : 0.0,
+          thisWeekMeetings: 0,
+        );
+
+        _riskDistribution = RiskDistributionData(
+          low: low,
+          medium: medium,
+          high: high,
+          critical: critical,
+        );
+      } else if (_selectedRole == 'student') {
+        final userId = user.id;
+        final summaryRes = await _supabase.from('student_full_summary').select().eq('id', userId).maybeSingle();
+        final latestAnalysisRes = await _supabase.from('student_latest_analysis').select().eq('student_id', userId).maybeSingle();
+        final semestersRes = await _supabase.from('student_semesters').select().eq('student_id', userId).order('semester_number');
+        final currentCoursesRes = await _supabase.from('student_courses').select().eq('student_id', userId);
+
+        if (summaryRes != null) {
+          final name = summaryRes['name']?.toString() ?? '';
+          final code = summaryRes['student_code']?.toString() ?? '';
+          final prog = summaryRes['program_name']?.toString() ?? '';
+          final level = summaryRes['study_level']?.toString() ?? '1';
+
+          _studentProfile = StudentProfileData(
+            name: name,
+            studentId: code,
+            program: prog,
+            level: level,
+            avatarUrl: null,
+          );
+
+          final gpaVal = summaryRes['calculated_gpa'] ?? summaryRes['cumulative_gpa'];
+          final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+          final completed = int.tryParse(summaryRes['total_passed_hours']?.toString() ?? '0') ?? 0;
+          final requiredHours = int.tryParse(summaryRes['total_credit_hours']?.toString() ?? '136') ?? 136;
+
+          AcRiskLevel risk = AcRiskLevel.low;
+          if (latestAnalysisRes != null) {
+            final err = int.tryParse(latestAnalysisRes['errors_count']?.toString() ?? '0') ?? 0;
+            final warn = int.tryParse(latestAnalysisRes['warnings_count']?.toString() ?? '0') ?? 0;
+            if (err >= 3 || gpa < 1.5) {
+              risk = AcRiskLevel.critical;
+            } else if (err > 0 || gpa < 2.0) {
+              risk = AcRiskLevel.high;
+            } else if (warn > 0) {
+              risk = AcRiskLevel.medium;
+            }
+          }
+
+          _studentSummary = AcademicSummaryData(
+            gpa: gpa,
+            maxGpa: 4.0,
+            completedHours: completed,
+            requiredHours: requiredHours,
+            registeredCourses: (currentCoursesRes as List).length,
+            semesterNumber: int.tryParse(level) ?? 1,
+            academicStanding: gpa >= 2.0 ? 'وضع أكاديمي جيد' : 'إنذار أكاديمي',
+            riskLevel: risk,
+          );
+        } else {
+          _studentProfile = null;
+          _studentSummary = null;
+        }
+
+        _gpaTrend = (semestersRes as List).map((sem) {
+          final semNum = sem['semester_number']?.toString() ?? '1';
+          final semGpa = double.tryParse(sem['semester_gpa']?.toString() ?? '') ?? 0.0;
+          return GpaTrendPoint(
+            semester: 'المستوى $semNum',
+            gpa: semGpa,
+          );
+        }).toList();
+
+        _currentCourses = (currentCoursesRes as List).map((c) {
+          return CurrentCourseData(
+            courseCode: c['course_code']?.toString() ?? '',
+            courseName: c['course_name']?.toString() ?? '',
+            creditHours: int.tryParse(c['credit_hours']?.toString() ?? '3') ?? 3,
+            currentGrade: c['grade_letter']?.toString() ?? '-',
+            attendancePercent: 100.0,
+            instructor: 'عضو هيئة التدريس',
+          );
+        }).toList();
+
+        final recRes = await _supabase.from('analysis_recommendations').select().eq('student_id', userId);
+        _recommendedCourses = (recRes as List).map((r) {
+          final recText = r['recommendation']?.toString() ?? '';
+          return RecommendedCourseData(
+            courseCode: '',
+            courseName: recText,
+            creditHours: 3,
+            aiConfidence: 0.95,
+            prerequisitesMet: true,
+            isAvailableThisSemester: true,
+          );
+        }).toList();
       }
-
-      // Enrollment Trend
-      _enrollmentTrend = const [
-        EnrollmentTrendPoint(semester: 'خريف 2024', count: 1200),
-        EnrollmentTrendPoint(semester: 'ربيع 2025', count: 1310),
-        EnrollmentTrendPoint(semester: 'خريف 2025', count: 1420),
-      ];
-
-      // Recent Activity
-      _recentActivities = [
-        SystemActivityItem(id: '1', message: 'تم تحديث شروط ومعدلات التخرج لقسم علوم الحاسب', type: AcStatusType.success, timestamp: DateTime.now().subtract(const Duration(minutes: 15))),
-        SystemActivityItem(id: '2', message: 'طلب إرشاد معلق جديد من الطالب أحمد علي الهاشمي', type: AcStatusType.warning, timestamp: DateTime.now().subtract(const Duration(hours: 1))),
-        SystemActivityItem(id: '3', message: 'تجاوز العبء الدراسي لـ 8 طلاب بمعدل تراكمي حرج', type: AcStatusType.danger, timestamp: DateTime.now().subtract(const Duration(hours: 3))),
-      ];
-
-      // Advisor Profile
-      _advisorProfile = const AdvisorProfileData(
-        name: 'د. خالد بن عبد الرحمن السليمان',
-        department: 'قسم علوم الحاسب ومعلومات الشبكات',
-        adviseeCount: 34,
-      );
-
-      _advisorKpi = AdvisorKpiData(
-        totalAdvisees: 34,
-        atRiskCount: high + critical > 0 ? high + critical : 4,
-        pendingRequests: 3,
-        averageGpa: 3.28,
-        thisWeekMeetings: 5,
-      );
-
-      _riskDistribution = RiskDistributionData(
-        low: low > 0 ? low : 24,
-        medium: medium > 0 ? medium : 6,
-        high: high > 0 ? high : 3,
-        critical: critical > 0 ? critical : 1,
-      );
-
-      _advisees = [
-        AdviseeRowData(id: '1', name: 'أحمد علي السالم', studentId: '442109843', program: 'علوم حاسب', gpa: 3.84, completedHours: 92, riskLevel: AcRiskLevel.low, lastActivity: DateTime.now()),
-        AdviseeRowData(id: '2', name: 'سلمان محمد القرني', studentId: '441094032', program: 'هندسة برمجيات', gpa: 2.12, completedHours: 64, riskLevel: AcRiskLevel.medium, lastActivity: DateTime.now()),
-        AdviseeRowData(id: '3', name: 'عبد الله فهد الشهري', studentId: '440182743', program: 'نظم معلومات', gpa: 1.84, completedHours: 112, riskLevel: AcRiskLevel.high, lastActivity: DateTime.now()),
-      ];
     } catch (e) {
-      //
+      // safe fallback on exceptions
     }
   }
 
@@ -216,6 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _selectedRole = role;
         });
+        _loadDashboardData();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
@@ -259,26 +455,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'student':
       default:
         return StudentDashboardScreen(
-          profileData: const StudentProfileData(
-            name: 'عبد الرحمن خالد الدوسري',
-            studentId: '442109843',
-            program: 'بكالوريوس علوم الحاسب والمعلومات',
-            level: '6',
-            avatarUrl: null,
-          ),
-          summaryData: const AcademicSummaryData(
-            gpa: 3.42,
-            maxGpa: 4.0,
-            completedHours: 94,
-            requiredHours: 134,
-            registeredCourses: 5,
-            semesterNumber: 6,
-            academicStanding: 'وضع أكاديمي جيد',
-            riskLevel: AcRiskLevel.low,
-          ),
-          recommendedCourses: const [],
-          currentCourses: const [],
-          gpaTrend: const [],
+          profileData: _studentProfile,
+          summaryData: _studentSummary,
+          recommendedCourses: _recommendedCourses,
+          currentCourses: _currentCourses,
+          gpaTrend: _gpaTrend,
           onRefresh: _loadDashboardData,
         );
     }
