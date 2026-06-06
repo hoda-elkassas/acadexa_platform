@@ -61,9 +61,13 @@ class _GradePointsScreenState extends State<GradePointsScreen> with SingleTicker
               isDefault: isDefault,
             );
             if (scale == null) {
-              _cubit.createScale(m).then((_) => Navigator.pop(context));
+              _cubit.createScale(m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             } else {
-              _cubit.updateScale(scale.id!, m).then((_) => Navigator.pop(context));
+              _cubit.updateScale(scale.id!, m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             }
           },
           child: Column(
@@ -141,9 +145,13 @@ class _GradePointsScreenState extends State<GradePointsScreen> with SingleTicker
               isPassing: isPassing,
             );
             if (item == null) {
-              _cubit.createItem(m).then((_) => Navigator.pop(context));
+              _cubit.createItem(m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             } else {
-              _cubit.updateItem(item.id!, m).then((_) => Navigator.pop(context));
+              _cubit.updateItem(item.id!, m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             }
           },
           child: Column(
@@ -248,9 +256,13 @@ class _GradePointsScreenState extends State<GradePointsScreen> with SingleTicker
               affectsGpa: affectsGpa,
             );
             if (symbol == null) {
-              _cubit.createSymbol(m).then((_) => Navigator.pop(context));
+              _cubit.createSymbol(m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             } else {
-              _cubit.updateSymbol(symbol.id!, m).then((_) => Navigator.pop(context));
+              _cubit.updateSymbol(symbol.id!, m).then((_) {
+                if (context.mounted) Navigator.pop(context);
+              });
             }
           },
           child: Column(
@@ -418,7 +430,7 @@ class _GradePointsScreenState extends State<GradePointsScreen> with SingleTicker
                                         title: Text(sc.nameAr, style: AppTypography.bodyMedium),
                                         subtitle: sc.isDefault ? const Text('المقياس الافتراضي للنجاح') : null,
                                         trailing: isSelected
-                                            ? Icon(Icons.arrow_back_rounded, color: AppColors.primary500)
+                                            ? const Icon(Icons.arrow_back_rounded, color: AppColors.primary500)
                                             : null,
                                         selected: isSelected,
                                         selectedTileColor: AppColors.primary50,

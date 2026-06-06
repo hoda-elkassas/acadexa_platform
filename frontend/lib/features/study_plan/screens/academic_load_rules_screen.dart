@@ -399,7 +399,7 @@ class _AcademicLoadRulesScreenState extends State<AcademicLoadRulesScreen> {
         Container(
           width: 4,
           height: 20,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.primary500,
             borderRadius: AppRadius.brPill,
           ),

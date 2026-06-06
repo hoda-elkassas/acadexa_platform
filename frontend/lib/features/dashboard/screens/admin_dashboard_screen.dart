@@ -323,7 +323,7 @@ class _AdminKpiGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: AppSpacing.sm,
           mainAxisSpacing: AppSpacing.sm,
-          childAspectRatio: count == 2 ? 1.3 : 1.5,
+          childAspectRatio: count == 2 ? 1.15 : 1.3,
           children: items
               .map(
                 (e) => AcKpiCard(

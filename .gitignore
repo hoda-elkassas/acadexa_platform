@@ -111,3 +111,17 @@ debug.log
 # -------------------------------
 *.local
 *.dev
+# -------------------------------
+# PYTHON BACKEND
+# -------------------------------
+python_backend/venv/
+python_backend/.venv/
+python_backend/__pycache__/
+python_backend/**/__pycache__/
+python_backend/**/*.pyc
+python_backend/**/*.pyo
+python_backend/logs/
+python_backend/storage/temp_uploads/
+python_backend/storage/output/
+python_backend/storage/jobs/
+python_backend/project_structure.txt

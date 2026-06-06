@@ -126,7 +126,7 @@ class AcKpiCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: AppSpacing.insetCard,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           gradient: gradient,
           color: useGradient ? null : AppColors.surface,
@@ -263,7 +263,7 @@ class _AcKpiCardSkeletonState extends State<AcKpiCardSkeleton>
     return AnimatedBuilder(
       animation: _shimmer,
       builder: (context, child) => Container(
-        padding: AppSpacing.insetCard,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: AppRadius.brCard,

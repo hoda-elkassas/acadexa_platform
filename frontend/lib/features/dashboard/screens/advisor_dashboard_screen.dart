@@ -395,7 +395,7 @@ class _AdvisorKpiRow extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: AppSpacing.sm,
           mainAxisSpacing: AppSpacing.sm,
-          childAspectRatio: isNarrow ? 1.3 : 1.6,
+          childAspectRatio: isNarrow ? 1.15 : 1.35,
           children: items
               .map(
                 (e) => AcKpiCard(

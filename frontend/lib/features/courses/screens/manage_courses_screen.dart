@@ -70,7 +70,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         course: course,
       ),
     ).then((updated) {
-      if (updated == true) {
+      if (updated == true && mounted) {
         AcSnackbar.show(
           context,
           message: CurriculumStrings.savedSuccessfully,

@@ -68,11 +68,13 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
 
       _analyze(currentList, compareList);
     } catch (e) {
-      AcSnackbar.show(
-        context,
-        message: 'حدث خطأ أثناء مقارنة الخطط: ${e.toString()}',
-        type: AcToastType.error,
-      );
+      if (mounted) {
+        AcSnackbar.show(
+          context,
+          message: 'حدث خطأ أثناء مقارنة الخطط: ${e.toString()}',
+          type: AcToastType.error,
+        );
+      }
     } finally {
       setState(() {
         _loadingCourses = false;

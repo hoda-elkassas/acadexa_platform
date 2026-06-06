@@ -66,7 +66,7 @@ class _ElectiveGroupsScreenState extends State<ElectiveGroupsScreen> {
         group: group,
       ),
     ).then((updated) {
-      if (updated == true) {
+      if (updated == true && mounted) {
         AcSnackbar.show(
           context,
           message: CurriculumStrings.savedSuccessfully,

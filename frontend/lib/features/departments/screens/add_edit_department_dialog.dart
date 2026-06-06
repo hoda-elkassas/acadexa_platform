@@ -85,9 +85,13 @@ class _AddEditDepartmentDialogState extends State<AddEditDepartmentDialog> {
       );
 
       if (widget.program == null) {
-        cubit.createProgram(p).then((_) => Navigator.pop(context, true));
+        cubit.createProgram(p).then((_) {
+          if (mounted) Navigator.pop(context, true);
+        });
       } else {
-        cubit.updateProgram(widget.program!.id!, p).then((_) => Navigator.pop(context, true));
+        cubit.updateProgram(widget.program!.id!, p).then((_) {
+          if (mounted) Navigator.pop(context, true);
+        });
       }
     } else {
       final d = DepartmentModel(
@@ -100,9 +104,13 @@ class _AddEditDepartmentDialogState extends State<AddEditDepartmentDialog> {
       );
 
       if (widget.department == null) {
-        cubit.createDepartment(d).then((_) => Navigator.pop(context, true));
+        cubit.createDepartment(d).then((_) {
+          if (mounted) Navigator.pop(context, true);
+        });
       } else {
-        cubit.updateDepartment(widget.department!.id!, d).then((_) => Navigator.pop(context, true));
+        cubit.updateDepartment(widget.department!.id!, d).then((_) {
+          if (mounted) Navigator.pop(context, true);
+        });
       }
     }
   }

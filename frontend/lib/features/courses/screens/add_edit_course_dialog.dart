@@ -103,9 +103,13 @@ class _AddEditCourseDialogState extends State<AddEditCourseDialog> {
 
     final cubit = context.read<CoursesCubit>();
     if (widget.course == null) {
-      cubit.createCourse(newCourse).then((_) => Navigator.pop(context, true));
+      cubit.createCourse(newCourse).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     } else {
-      cubit.updateCourse(widget.course!.id!, newCourse).then((_) => Navigator.pop(context, true));
+      cubit.updateCourse(widget.course!.id!, newCourse).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     }
   }
 

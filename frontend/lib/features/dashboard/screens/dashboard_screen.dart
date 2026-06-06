@@ -377,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Segmented toggle
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.neutral100,
                 borderRadius: AppRadius.brPill,
               ),

@@ -481,7 +481,7 @@ class _KpiRow extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: AppSpacing.sm,
             mainAxisSpacing: AppSpacing.sm,
-            childAspectRatio: 1.4,
+            childAspectRatio: 1.15,
             children: items.map((e) => _buildKpiCard(e, isLoading)).toList(),
           );
         }

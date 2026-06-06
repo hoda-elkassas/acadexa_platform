@@ -31,7 +31,7 @@ class CourseDetailsDrawer extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.primary50,
                       borderRadius: AppRadius.brSm,
                     ),

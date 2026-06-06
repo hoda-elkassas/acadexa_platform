@@ -15,11 +15,11 @@ void main() async {
   await Supabase.initialize(
     url: const String.fromEnvironment(
       'SUPABASE_URL',
-      defaultValue: 'https://your-project.supabase.co',
+      defaultValue: 'https://buuisbquunicouyxkpbf.supabase.co',
     ),
     publishableKey: const String.fromEnvironment(
       'SUPABASE_ANON_KEY',
-      defaultValue: 'your-anon-key',
+      defaultValue: 'sb_publishable_FfLoQ3HPDNtmj8--ZnsXWA_QTj-Qfkm',
     ),
   );
 

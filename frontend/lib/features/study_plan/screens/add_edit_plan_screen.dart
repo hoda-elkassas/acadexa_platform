@@ -88,11 +88,11 @@ class _AddEditPlanScreenState extends State<AddEditPlanScreen> {
     final cubit = context.read<StudyPlanCubit>();
     if (widget.plan == null) {
       cubit.createPlan(newPlan).then((_) {
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       });
     } else {
       cubit.updatePlan(widget.plan!.id!, newPlan).then((_) {
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       });
     }
   }

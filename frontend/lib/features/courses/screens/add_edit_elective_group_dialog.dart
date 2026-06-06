@@ -109,9 +109,13 @@ class _AddEditElectiveGroupDialogState extends State<AddEditElectiveGroupDialog>
 
     final cubit = context.read<ElectiveGroupsCubit>();
     if (widget.group == null) {
-      cubit.create(newGroup).then((_) => Navigator.pop(context, true));
+      cubit.create(newGroup).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     } else {
-      cubit.update(widget.group!.id!, newGroup).then((_) => Navigator.pop(context, true));
+      cubit.update(widget.group!.id!, newGroup).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     }
   }
 

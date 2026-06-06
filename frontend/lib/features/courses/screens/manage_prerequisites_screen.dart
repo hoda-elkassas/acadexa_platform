@@ -47,7 +47,7 @@ class _ManagePrerequisitesScreenState extends State<ManagePrerequisitesScreen> {
         prerequisite: prerequisite,
       ),
     ).then((updated) {
-      if (updated == true) {
+      if (updated == true && mounted) {
         AcSnackbar.show(
           context,
           message: CurriculumStrings.savedSuccessfully,

@@ -105,9 +105,13 @@ class _AddPrerequisiteDialogState extends State<AddPrerequisiteDialog> {
 
     final cubit = context.read<PrerequisitesCubit>();
     if (widget.prerequisite == null) {
-      cubit.create(newPrereq).then((_) => Navigator.pop(context, true));
+      cubit.create(newPrereq).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     } else {
-      cubit.update(widget.prerequisite!.id!, newPrereq).then((_) => Navigator.pop(context, true));
+      cubit.update(widget.prerequisite!.id!, newPrereq).then((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     }
   }
 

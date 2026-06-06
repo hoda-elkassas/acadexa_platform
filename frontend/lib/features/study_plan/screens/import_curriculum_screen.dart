@@ -176,11 +176,13 @@ class _ImportCurriculumScreenState extends State<ImportCurriculumScreen> {
       setState(() {
         _isImporting = false;
       });
-      AcSnackbar.show(
-        context,
-        message: 'فشل الاستيراد: ${e.toString()}',
-        type: AcToastType.error,
-      );
+      if (mounted) {
+        AcSnackbar.show(
+          context,
+          message: 'فشل الاستيراد: ${e.toString()}',
+          type: AcToastType.error,
+        );
+      }
     }
   }
 
@@ -310,7 +312,7 @@ class _ImportCurriculumScreenState extends State<ImportCurriculumScreen> {
                   fontSize: 13,
                   color: AppColors.textPrimary,
                 ),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: '[\n  {\n    "code": "CS101", ...\n  }\n]',
                   hintStyle: TextStyle(color: AppColors.textDisabled),
                   filled: true,
@@ -375,7 +377,7 @@ class _ImportCurriculumScreenState extends State<ImportCurriculumScreen> {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
-                Icon(Icons.check_circle_outline_rounded, color: AppColors.success500),
+                const Icon(Icons.check_circle_outline_rounded, color: AppColors.success500),
                 const SizedBox(width: AppSpacing.md),
                 Text(
                   'تم تحليل البيانات بنجاح: تم التعرف على ${_parsedData.length} مقرر جاهز للاستيراد.',

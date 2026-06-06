@@ -48,7 +48,7 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> with SingleTicker
       context: context,
       builder: (_) => AddEditDepartmentDialog(department: department),
     ).then((updated) {
-      if (updated == true) {
+      if (updated == true && mounted) {
         AcSnackbar.show(
           context,
           message: CurriculumStrings.savedSuccessfully,
@@ -63,7 +63,7 @@ class _DepartmentsScreenState extends State<DepartmentsScreen> with SingleTicker
       context: context,
       builder: (_) => AddEditDepartmentDialog(program: program, isProgram: true),
     ).then((updated) {
-      if (updated == true) {
+      if (updated == true && mounted) {
         AcSnackbar.show(
           context,
           message: CurriculumStrings.savedSuccessfully,

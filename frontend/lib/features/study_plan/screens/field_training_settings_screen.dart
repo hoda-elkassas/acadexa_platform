@@ -338,7 +338,7 @@ class _FieldTrainingSettingsScreenState extends State<FieldTrainingSettingsScree
         Container(
           width: 4,
           height: 20,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.primary500,
             borderRadius: AppRadius.brPill,
           ),
