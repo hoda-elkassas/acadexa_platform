@@ -134,10 +134,13 @@ DECLARE
   curriculum_tables TEXT[] := ARRAY[
     'departments','study_plans','courses','prerequisites',
     'elective_groups','elective_group_courses','plan_structure',
-    'grading_scales','grade_scale_items'
+    'grading_scales','grade_scale_items','course_equivalents'
   ];
   t TEXT;
 BEGIN
+  -- Explicitly enable RLS on course_equivalents if not enabled
+  ALTER TABLE IF EXISTS public.course_equivalents ENABLE ROW LEVEL SECURITY;
+
   FOREACH t IN ARRAY curriculum_tables LOOP
     -- Drop old open policy
     EXECUTE format('DROP POLICY IF EXISTS "public_read_%s" ON public.%I', t, t);
@@ -232,6 +235,16 @@ BEGIN
   END LOOP;
 END
 $$;
+
+-- Grant select on view student_full_summary to all roles
+GRANT SELECT ON public.student_full_summary TO service_role;
+GRANT SELECT ON public.student_full_summary TO anon;
+GRANT SELECT ON public.student_full_summary TO authenticated;
+
+-- Grant select on course_equivalents table to all roles
+GRANT ALL ON public.course_equivalents TO service_role;
+GRANT SELECT ON public.course_equivalents TO anon;
+GRANT SELECT ON public.course_equivalents TO authenticated;
 
 -- ============================================================
 -- Manual step after running this script:

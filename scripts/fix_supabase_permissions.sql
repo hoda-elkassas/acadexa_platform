@@ -24,6 +24,7 @@ GRANT ALL ON public.analysis_issues         TO service_role;
 GRANT ALL ON public.analysis_recommendations TO service_role;
 GRANT ALL ON public.import_jobs             TO service_role;
 GRANT ALL ON public.field_training_rules    TO service_role;
+GRANT ALL ON public.course_equivalents      TO service_role;
 
 -- Also GRANT to anon role (for Flutter frontend with anon key)
 GRANT SELECT ON public.departments              TO anon;
@@ -42,6 +43,7 @@ GRANT SELECT ON public.analysis_issues         TO anon;
 GRANT SELECT ON public.analysis_recommendations TO anon;
 GRANT SELECT ON public.import_jobs             TO anon;
 GRANT SELECT ON public.field_training_rules    TO anon;
+GRANT SELECT ON public.course_equivalents      TO anon;
 
 -- Also grant for authenticated role (Flutter users logged in)
 GRANT SELECT ON public.departments              TO authenticated;
@@ -60,6 +62,12 @@ GRANT SELECT ON public.analysis_issues         TO authenticated;
 GRANT SELECT ON public.analysis_recommendations TO authenticated;
 GRANT SELECT ON public.import_jobs             TO authenticated;
 GRANT SELECT ON public.field_training_rules    TO authenticated;
+GRANT SELECT ON public.course_equivalents      TO authenticated;
+
+-- GRANT on student_full_summary view
+GRANT SELECT ON public.student_full_summary TO service_role;
+GRANT SELECT ON public.student_full_summary TO anon;
+GRANT SELECT ON public.student_full_summary TO authenticated;
 
 -- Also enable RLS on these tables so policies apply properly
 ALTER TABLE public.departments              ENABLE ROW LEVEL SECURITY;
@@ -78,6 +86,7 @@ ALTER TABLE public.analysis_issues         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analysis_recommendations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.import_jobs             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.field_training_rules    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.course_equivalents      ENABLE ROW LEVEL SECURITY;
 
 -- Create permissive SELECT policies for public read access (anon + authenticated)
 -- (Only creates policy if it doesn't already exist)
@@ -89,7 +98,8 @@ DECLARE
     'elective_groups','elective_group_courses','plan_structure',
     'academic_load_rules','graduation_requirements','grading_scales',
     'grade_scale_items','analysis_results','analysis_issues',
-    'analysis_recommendations','import_jobs','field_training_rules'
+    'analysis_recommendations','import_jobs','field_training_rules',
+    'course_equivalents'
   ];
   t TEXT;
 BEGIN
