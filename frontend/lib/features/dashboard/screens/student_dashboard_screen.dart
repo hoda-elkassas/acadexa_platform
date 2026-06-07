@@ -191,30 +191,31 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   }
 
   String _titleForIndex(int i) => switch (i) {
-    0 => 'لوحة الطالب',
-    1 => 'مقرراتي',
-    2 => 'الجدول الدراسي',
-    3 => 'المشرف الأكاديمي',
-    4 => 'ملفي الشخصي',
-    _ => 'Acadexa',
-  };
+        0 => 'لوحة الطالب',
+        1 => 'مقرراتي',
+        2 => 'الجدول الدراسي',
+        3 => 'المشرف الأكاديمي',
+        4 => 'ملفي الشخصي',
+        _ => 'Acadexa',
+      };
 
   Widget _bodyForIndex(int i) => switch (i) {
-    0 => _HomeTab(
-      profileData: widget.profileData,
-      summaryData: widget.summaryData,
-      recommendedCourses: widget.recommendedCourses,
-      currentCourses: widget.currentCourses,
-      gpaTrend: widget.gpaTrend,
-      isLoadingProfile: widget.isLoadingProfile,
-      isLoadingSummary: widget.isLoadingSummary,
-      isLoadingCourses: widget.isLoadingCourses,
-      isLoadingTrend: widget.isLoadingTrend,
-      onCourseRegister: widget.onCourseRegister,
-      onRequestAdvisor: widget.onRequestAdvisor,
-    ),
-    _ => const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
-  };
+        0 => _HomeTab(
+            profileData: widget.profileData,
+            summaryData: widget.summaryData,
+            recommendedCourses: widget.recommendedCourses,
+            currentCourses: widget.currentCourses,
+            gpaTrend: widget.gpaTrend,
+            isLoadingProfile: widget.isLoadingProfile,
+            isLoadingSummary: widget.isLoadingSummary,
+            isLoadingCourses: widget.isLoadingCourses,
+            isLoadingTrend: widget.isLoadingTrend,
+            onCourseRegister: widget.onCourseRegister,
+            onRequestAdvisor: widget.onRequestAdvisor,
+          ),
+        _ =>
+          const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
+      };
 }
 
 // ─── _HomeTab ─────────────────────────────────────────────────────────────
@@ -447,9 +448,8 @@ class _KpiRow extends StatelessWidget {
           ),
           _KpiItem(
             title: 'الساعات المكتملة',
-            value: summaryData != null
-                ? '${summaryData!.completedHours}'
-                : '--',
+            value:
+                summaryData != null ? '${summaryData!.completedHours}' : '--',
             icon: Icons.check_circle_outline_rounded,
             gradient: AppGradients.kpiSuccess,
             trend: null,
@@ -618,8 +618,8 @@ class _AcademicProgressCard extends StatelessWidget {
                   status: summaryData!.riskLevel == AcRiskLevel.low
                       ? AcStatusType.active
                       : summaryData!.riskLevel == AcRiskLevel.medium
-                      ? AcStatusType.warning
-                      : AcStatusType.danger,
+                          ? AcStatusType.warning
+                          : AcStatusType.danger,
                 )
               else
                 const AcSkeletonBox(width: 80, height: 22),
@@ -653,26 +653,26 @@ class _AiRecommendationsSection extends StatelessWidget {
       child: isLoading
           ? const AcLoadingState(size: AcStateSize.small)
           : courses.isEmpty
-          ? const AcEmptyState(
-              title: 'لا توجد توصيات حالياً',
-              message: 'سيتم تحليل بياناتك وإعداد التوصيات',
-              icon: Icon(Icons.auto_awesome_outlined),
-              size: AcStateSize.small,
-            )
-          : Column(
-              children: courses
-                  .take(4)
-                  .map(
-                    (c) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _RecommendedCourseRow(
-                        course: c,
-                        onRegister: onRegister,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+              ? const AcEmptyState(
+                  title: 'لا توجد توصيات حالياً',
+                  message: 'سيتم تحليل بياناتك وإعداد التوصيات',
+                  icon: Icon(Icons.auto_awesome_outlined),
+                  size: AcStateSize.small,
+                )
+              : Column(
+                  children: courses
+                      .take(4)
+                      .map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _RecommendedCourseRow(
+                            course: c,
+                            onRegister: onRegister,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
     );
   }
 }
@@ -772,20 +772,20 @@ class _CurrentCoursesSection extends StatelessWidget {
       child: isLoading
           ? const AcListSkeleton(itemCount: 3)
           : courses.isEmpty
-          ? const AcEmptyState(
-              title: 'لا توجد مقررات مسجلة',
-              size: AcStateSize.small,
-            )
-          : Column(
-              children: courses
-                  .map(
-                    (c) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _CurrentCourseRow(course: c),
-                    ),
-                  )
-                  .toList(),
-            ),
+              ? const AcEmptyState(
+                  title: 'لا توجد مقررات مسجلة',
+                  size: AcStateSize.small,
+                )
+              : Column(
+                  children: courses
+                      .map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _CurrentCourseRow(course: c),
+                        ),
+                      )
+                      .toList(),
+                ),
     );
   }
 }
