@@ -1,28 +1,54 @@
 """
-Reads all environment variables using pydantic-settings.
-Exports a single 'settings' object used throughout the app.
+Production-grade configuration management using pydantic-settings.
 """
-from pydantic_settings import BaseSettings
-from typing import List
+from functools import lru_cache
+from typing import List, Union
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    # Supabase
+    # Supabase config
     SUPABASE_URL: str
     SUPABASE_ANON_KEY: str
     SUPABASE_SERVICE_ROLE_KEY: str
+    SUPABASE_JWT_SECRET: str
 
-    # Firebase (optional)
+    # Firebase config (optional)
     FCM_SERVER_KEY: str = ""
     FIREBASE_CREDENTIALS_PATH: str = "firebase-credentials.json"
 
-    # App
-    SECRET_KEY: str = "change-me"
+    # App config
+    SECRET_KEY: str
     ENVIRONMENT: str = "development"
     MAX_UPLOAD_SIZE_MB: int = 50
-    ALLOWED_ORIGINS: List[str] = ["*"]
+    ALLOWED_ORIGINS: Union[str, List[str]] = ["*"]
+    UPLOAD_TEMP_DIR: str = "./temp_uploads"
+    LOG_LEVEL: str = "INFO"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    @field_validator("ALLOWED_ORIGINS")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
 
-settings = Settings()
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+
+    @property
+    def is_development(self) -> bool:
+        return self.ENVIRONMENT.lower() in ("development", "dev")
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+settings = get_settings()

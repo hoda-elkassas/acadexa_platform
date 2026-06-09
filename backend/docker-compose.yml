@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./uploads:/app/uploads
+      - ./temp_uploads:/app/temp_uploads
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
