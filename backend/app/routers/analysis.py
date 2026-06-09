@@ -5,6 +5,7 @@ graduation readiness, and analysis history/records retrieval.
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import Dict, Any, List
 from app.core.dependencies import get_current_user, check_role
+from app.core.exceptions import NotFoundError
 from app.services.expert_system import ExpertSystemService
 from app.services.analysis_service import AnalysisService
 from app.models.analysis import (

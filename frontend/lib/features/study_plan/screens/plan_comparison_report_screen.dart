@@ -182,10 +182,10 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
                     child: _loadingCourses
                         ? const Center(child: AcLoadingState())
                         : _selectedPlan == null
-                            ? AcEmptyState(
+                            ? const AcEmptyState(
                                 title: 'حدد خطة للمقارنة',
                                 message: 'اختر خطة دراسية أخرى من القائمة العلوية لإجراء تحليل الفروقات وتغير الساعات المعتمدة تلقائياً',
-                                icon: const Icon(Icons.compare_rounded),
+                                icon: Icon(Icons.compare_rounded),
                               )
                             : _buildReportBody(),
                   ),
@@ -380,7 +380,7 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
         Container(
           width: 4,
           height: 20,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.primary500,
             borderRadius: AppRadius.brPill,
           ),

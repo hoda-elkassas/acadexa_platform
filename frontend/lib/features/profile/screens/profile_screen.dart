@@ -7,7 +7,7 @@ import 'edit_profile_screen.dart';
 import '../../notifications/screens/notification_settings_screen.dart';
 import '../../security/screens/security_settings_screen.dart';
 import '../../support/screens/about_screen.dart';
-import '../../support/screens/faq_screen.dart';
+import '../../faq/screens/faq_screen.dart';
 import '../../support/screens/report_issue_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _userName = 'م. مصطفى الشريف';
   String _userEmail = 'mostafa.elsharif@acadexa.edu.eg';
-  String _userRole = 'مشرف النظام';
+  final String _userRole = 'مشرف النظام';
   bool _isUploadingPhoto = false;
 
   void _zoomProfilePhoto() {
@@ -30,14 +30,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         child: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: Hero(
-            tag: 'profile_avatar',
-            child: CircleAvatar(
-              radius: 150,
-              backgroundColor: kPrimaryTeal,
-              child: const Icon(Icons.person, size: 180, color: kWhite),
+            child: const Hero(
+              tag: 'profile_avatar',
+              child: CircleAvatar(
+                radius: 150,
+                backgroundColor: kPrimaryTeal,
+                child: Icon(Icons.person, size: 180, color: kWhite),
+              ),
             ),
-          ),
         ),
       ),
     );

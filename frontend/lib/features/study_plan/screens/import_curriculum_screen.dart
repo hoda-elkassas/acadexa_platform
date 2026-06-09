@@ -502,7 +502,7 @@ class _ImportCurriculumScreenState extends State<ImportCurriculumScreen> {
                   color: AppColors.success50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.check_circle_rounded, color: AppColors.success500, size: 48),
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.success500, size: 48),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(

@@ -78,6 +78,7 @@ abstract class AppColors {
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF475569);
   static const Color textMuted = Color(0xFF94A3B8);
+  static const Color textTertiary = textMuted;
   static const Color textDisabled = Color(0xFFCBD5E1);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 

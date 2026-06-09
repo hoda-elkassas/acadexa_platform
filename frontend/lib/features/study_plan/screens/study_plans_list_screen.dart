@@ -410,6 +410,14 @@ class _StudyPlansListScreenState extends State<StudyPlansListScreen> {
                 Navigator.pushNamed(context, '/curriculum/study-plans/rules/field-training', arguments: plan);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.upload_file_rounded, color: AppColors.primary500),
+              title: const Text('استيراد المواد واللوائح (JSON)'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/curriculum/study-plans/import', arguments: plan);
+              },
+            ),
           ],
         ),
       ),

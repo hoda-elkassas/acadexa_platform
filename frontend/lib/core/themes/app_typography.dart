@@ -103,6 +103,11 @@ abstract class AppTypography {
     color: AppColors.textPrimary,
   );
 
+  // Material-style aliases used by feature screens.
+  static TextStyle get titleLarge => h4;
+  static TextStyle get titleMedium => h5;
+  static TextStyle get titleSmall => labelLarge;
+
   // Body
   static TextStyle get bodyLarge => const TextStyle(
     fontFamily: arabicFont,

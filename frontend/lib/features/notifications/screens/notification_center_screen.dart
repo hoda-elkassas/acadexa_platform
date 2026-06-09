@@ -16,7 +16,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   final List<String> _tabs = ['الكل', 'غير مقروء', 'أكاديمي'];
 
-  List<Map<String, dynamic>> _notifications = [
+  final List<Map<String, dynamic>> _notifications = [
     {
       'id': '1',
       'title': 'إنذار أكاديمي: ساعات الغياب',

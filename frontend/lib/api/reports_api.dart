@@ -17,7 +17,7 @@ class ReportsApi {
   Future<void> downloadStudentTranscriptPdf(String studentId, String savePath) async {
     try {
       await _dio.download(
-        '${ApiEndpoints.apiV1}/reports/student/$studentId',
+        '${ApiEndpoints.apiV1}/reports/student/$studentId/transcript',
         savePath,
         options: Options(
           headers: _getHeaders(),
@@ -37,7 +37,7 @@ class ReportsApi {
   }) async {
     try {
       await _dio.download(
-        '${ApiEndpoints.apiV1}/reports/department/$departmentId',
+        '${ApiEndpoints.apiV1}/reports/department/$departmentId/summary',
         savePath,
         queryParameters: {
           'file_format': fileFormat,
@@ -61,7 +61,7 @@ class ReportsApi {
   }) async {
     try {
       await _dio.download(
-        '${ApiEndpoints.apiV1}/reports/at-risk/$departmentId',
+        '${ApiEndpoints.apiV1}/reports/department/$departmentId/at-risk',
         savePath,
         queryParameters: {
           'file_format': fileFormat,

@@ -1,11 +1,12 @@
 // file: lib/core/constants/api_endpoints.dart
+import '../environment.dart';
 
 /// Base URL for the Python FastAPI backend.
 /// Change this if your backend is running on a different host/port.
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = Environment.apiBaseUrl;
   static const String apiV1   = '$baseUrl/api/v1';
 
   // ── Health ──────────────────────────────────────────────────────────

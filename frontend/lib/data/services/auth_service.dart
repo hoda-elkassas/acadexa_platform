@@ -68,7 +68,7 @@ class AuthService {
         );
       }
 
-      return UserProfileModel.fromJson(data as Map<String, dynamic>);
+      return UserProfileModel.fromJson(data);
     } catch (e) {
       // Re-throw AuthException (inactive account) immediately
       if (e is AuthException) rethrow;
@@ -90,7 +90,7 @@ class AuthService {
           );
         }
 
-        return UserProfileModel.fromJson(data as Map<String, dynamic>);
+        return UserProfileModel.fromJson(data);
       } catch (e2) {
         if (e2 is AuthException) rethrow;
 

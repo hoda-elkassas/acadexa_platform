@@ -37,7 +37,7 @@ class RecommendationApi {
         'reason': reason,
       }).select().single();
 
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       throw Exception('فشل إضافة التوصية الأكاديمية: ${e.toString()}');
     }

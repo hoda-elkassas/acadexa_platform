@@ -65,6 +65,8 @@ class AcTextField extends StatefulWidget {
   State<AcTextField> createState() => _AcTextFieldState();
 }
 
+typedef AcInputField = AcTextField;
+
 class _AcTextFieldState extends State<AcTextField> {
   late FocusNode _focusNode;
   bool _isFocused = false;

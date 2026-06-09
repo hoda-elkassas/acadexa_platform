@@ -12,6 +12,9 @@ import '../../../shared/widgets/chips/ac_chips.dart';
 import '../../../shared/widgets/states/ac_states.dart';
 import '../../../shared/widgets/tables/ac_data_table.dart';
 import '../../../shared/widgets/navigation/ac_navigation.dart';
+import '../../advisor/screens/at_risk_students_screen.dart';
+import '../../advisor/screens/advisory_sessions_screen.dart';
+import '../../../shared/widgets/dialogs/ac_dialogs.dart';
 
 // ─── Data contracts ───────────────────────────────────────────────────────
 class AdvisorProfileData {
@@ -216,6 +219,13 @@ class _AdvisorDashboardScreenState extends State<AdvisorDashboardScreen> {
       searchQuery: widget.searchQuery,
       riskFilter: widget.riskFilter,
     ),
+    1 => const AtRiskStudentsScreen(),
+    2 => const AdvisorySessionsScreen(),
+    3 => _ReportsTab(
+      riskDistribution: widget.riskDistribution,
+      advisees: widget.advisees,
+    ),
+    4 => const _SettingsTab(),
     _ => const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
   };
 }
@@ -805,6 +815,280 @@ class _RiskFilter extends StatelessWidget {
       underline: const SizedBox(),
       style: AppTypography.bodySmall,
       borderRadius: AppRadius.brSm,
+    );
+  }
+}
+
+// ─── _ReportsTab ──────────────────────────────────────────────────────────
+class _ReportsTab extends StatelessWidget {
+  const _ReportsTab({this.riskDistribution, required this.advisees});
+  final RiskDistributionData? riskDistribution;
+  final List<AdviseeRowData> advisees;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = advisees.length;
+    final avgGpa = total > 0 ? advisees.map((e) => e.gpa).reduce((a, b) => a + b) / total : 0.0;
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'التقارير الأكاديمية والتحليلات',
+            style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: [
+                    AcCard(
+                      title: 'إحصائيات الأداء العام للطلاب',
+                      child: Column(
+                        children: [
+                          _buildReportRow('إجمالي عدد الطلاب تحت الإشراف', '$total طالب'),
+                          _buildReportRow('متوسط المعدل التراكمي العام', avgGpa.toStringAsFixed(2)),
+                          _buildReportRow('عدد الطلاب المتعثرين (GPA < 2.0)', '${(riskDistribution?.high ?? 0) + (riskDistribution?.critical ?? 0)} طلاب'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AcCard(
+                      title: 'التقارير المتاحة للتصدير',
+                      child: Column(
+                        children: [
+                          _buildExportableReportCard(
+                            context,
+                            'تقرير الطلاب المتعثرين أكاديمياً',
+                            'يحتوي على قائمة الطلاب المهددين بالفصل مع نسب الحضور وعدد الإنذارات.',
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _buildExportableReportCard(
+                            context,
+                            'تقرير الفصول الدراسية المتبقية للتخرج',
+                            'تحليل ومحاكاة لمواعيد تخرج الطلاب وتحديد المتطلبات المتبقية.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                flex: 1,
+                child: AcCard(
+                  title: 'مستويات الخطورة',
+                  child: SizedBox(
+                    height: 280,
+                    child: AcDonutChart(
+                      slices: [
+                        AcPieSlice(
+                          label: 'منخفضة',
+                          value: (riskDistribution?.low ?? 0).toDouble(),
+                          color: AppColors.success500,
+                        ),
+                        AcPieSlice(
+                          label: 'متوسطة',
+                          value: (riskDistribution?.medium ?? 0).toDouble(),
+                          color: AppColors.warning500,
+                        ),
+                        AcPieSlice(
+                          label: 'عالية',
+                          value: (riskDistribution?.high ?? 0).toDouble(),
+                          color: AppColors.danger500,
+                        ),
+                        AcPieSlice(
+                          label: 'حرجة',
+                          value: (riskDistribution?.critical ?? 0).toDouble(),
+                          color: AppColors.danger700,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTypography.bodyMedium),
+          Text(value, style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExportableReportCard(BuildContext context, String title, String desc) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.neutral50,
+        borderRadius: AppRadius.brCard,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(desc, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          AcButton(
+            label: 'تصدير PDF',
+            onPressed: () {
+              AcSnackbar.show(
+                context,
+                message: 'جاري تصدير التقرير وتحميله بصيغة PDF...',
+                type: AcToastType.success,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _SettingsTab ─────────────────────────────────────────────────────────
+class _SettingsTab extends StatefulWidget {
+  const _SettingsTab();
+
+  @override
+  State<_SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends State<_SettingsTab> {
+  bool _emailNotifs = true;
+  bool _pushNotifs = false;
+  String _selectedChannel = 'office';
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'إعدادات الملف الشخصي والإرشاد',
+            style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AcCard(
+            title: 'إعدادات أوقات الجلسات الاستشارية',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('قناة الإرشاد المفضلة:', style: AppTypography.labelLarge),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: 'office',
+                      groupValue: _selectedChannel,
+                      onChanged: (val) => setState(() => _selectedChannel = val!),
+                      activeColor: AppColors.primary500,
+                    ),
+                    const Text('حضوري في مكتب المرشد', style: AppTypography.bodyMedium),
+                    const SizedBox(width: AppSpacing.lg),
+                    Radio<String>(
+                      value: 'teams',
+                      groupValue: _selectedChannel,
+                      onChanged: (val) => setState(() => _selectedChannel = val!),
+                      activeColor: AppColors.primary500,
+                    ),
+                    const Text('عن بعد عبر MS Teams', style: AppTypography.bodyMedium),
+                  ],
+                ),
+                const Divider(height: AppSpacing.lg),
+                Text('الساعات المكتبية المتاحة للطلاب:', style: AppTypography.labelLarge),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  children: [
+                    _buildTimeChip('الأحد: 10:00 ص - 12:00 م'),
+                    _buildTimeChip('الثلاثاء: 01:00 م - 03:00 م'),
+                    _buildTimeChip('الخميس: 09:00 ص - 11:00 ص'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AcCard(
+            title: 'تفضيلات التنبيهات والإشعارات',
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('إشعارات البريد الإلكتروني', style: AppTypography.labelLarge),
+                  subtitle: const Text('إرسال تنبيه فوري عند تقديم طالب لطلب إرشاد جديد', style: AppTypography.bodySmall),
+                  value: _emailNotifs,
+                  onChanged: (val) => setState(() => _emailNotifs = val),
+                  activeColor: AppColors.primary500,
+                ),
+                const Divider(),
+                SwitchListTile(
+                  title: const Text('إشعارات النظام الفورية', style: AppTypography.labelLarge),
+                  subtitle: const Text('إظهار إشعارات منبثقة عند تحديث بيانات طالب متعثر', style: AppTypography.bodySmall),
+                  value: _pushNotifs,
+                  onChanged: (val) => setState(() => _pushNotifs = val),
+                  activeColor: AppColors.primary500,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: AcButton(
+              label: 'حفظ الإعدادات والتفضيلات',
+              onPressed: () {
+                AcSnackbar.show(
+                  context,
+                  message: 'تم حفظ إعدادات الإرشاد بنجاح',
+                  type: AcToastType.success,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.primary50.withValues(alpha: 0.5),
+        border: Border.all(color: AppColors.primary200),
+        borderRadius: AppRadius.brCard,
+      ),
+      child: Text(
+        label,
+        style: AppTypography.bodySmall.copyWith(color: AppColors.primary800, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }

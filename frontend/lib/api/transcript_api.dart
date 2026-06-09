@@ -29,7 +29,7 @@ class TranscriptApi {
       });
 
       final response = await _dio.post(
-        '${ApiEndpoints.apiV1}/upload/transcript',
+        '${ApiEndpoints.apiV1}/upload/academic-record',
         data: formData,
         options: Options(
           headers: _getHeaders(),
@@ -47,7 +47,7 @@ class TranscriptApi {
   Future<Map<String, dynamic>> getJobStatus(String jobId) async {
     try {
       final response = await _dio.get(
-        '${ApiEndpoints.apiV1}/upload/job/$jobId',
+        '${ApiEndpoints.apiV1}/upload/status/$jobId',
         options: Options(
           headers: _getHeaders(),
         ),

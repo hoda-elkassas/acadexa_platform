@@ -1,13 +1,33 @@
-// file: lib/core/router/app_router.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/models/user_profile_model.dart';
+import '../../data/models/study_plan_model.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/otp_verification_screen.dart';
 import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
+
+// Import curriculum screens
+import '../../features/study_plan/screens/study_plan_structure_screen.dart';
+import '../../features/study_plan/screens/academic_load_rules_screen.dart';
+import '../../features/study_plan/screens/grade_points_screen.dart';
+import '../../features/study_plan/screens/field_training_settings_screen.dart';
+import '../../features/study_plan/screens/import_curriculum_screen.dart';
+import '../../features/courses/screens/manage_courses_screen.dart';
+import '../../features/courses/screens/manage_prerequisites_screen.dart';
+import '../../features/courses/screens/elective_groups_screen.dart';
+
+// Import curriculum cubits
+import '../../features/study_plan/cubit/plan_structure_cubit.dart';
+import '../../features/study_plan/cubit/academic_rules_cubit.dart';
+import '../../features/study_plan/cubit/grading_cubit.dart';
+import '../../features/study_plan/cubit/field_training_cubit.dart';
+import '../../features/courses/cubit/courses_cubit.dart';
+import '../../features/courses/cubit/prerequisites_cubit.dart';
+import '../../features/courses/cubit/elective_groups_cubit.dart';
 
 // ─── Route names ─────────────────────────────────────────────────────────
 abstract class AppRoutes {
@@ -28,6 +48,16 @@ abstract class AppRoutes {
   static const settings          = '/settings';
   static const error             = '/error';
   static const notFound          = '/404';
+
+  // Curriculum & Study Plan routes
+  static const studyPlanStructure = '/curriculum/study-plans/structure';
+  static const studyPlanCourses = '/curriculum/study-plans/courses';
+  static const studyPlanPrerequisites = '/curriculum/study-plans/prerequisites';
+  static const studyPlanElectiveGroups = '/curriculum/study-plans/elective-groups';
+  static const studyPlanAcademicLoad = '/curriculum/study-plans/rules/academic-load';
+  static const studyPlanGrading = '/curriculum/study-plans/rules/grading';
+  static const studyPlanFieldTraining = '/curriculum/study-plans/rules/field-training';
+  static const studyPlanImport = '/curriculum/study-plans/import';
 }
 
 // ─── Route arguments ─────────────────────────────────────────────────────
@@ -239,6 +269,84 @@ class AppRouter {
       case AppRoutes.dashboardViewer:
       case AppRoutes.studentDashboard:
         return _fadeRoute(const DashboardScreen(), settings);
+
+      // ── Curriculum & Study Plan Detail Routes ───────────────────────────
+      case AppRoutes.studyPlanStructure:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<PlanStructureCubit>(
+            create: (_) => PlanStructureCubit(),
+            child: StudyPlanStructureScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanCourses:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<CoursesCubit>(
+            create: (_) => CoursesCubit(),
+            child: ManageCoursesScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanPrerequisites:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<PrerequisitesCubit>(
+            create: (_) => PrerequisitesCubit(),
+            child: ManagePrerequisitesScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanElectiveGroups:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<ElectiveGroupsCubit>(
+            create: (_) => ElectiveGroupsCubit(),
+            child: ElectiveGroupsScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanAcademicLoad:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<AcademicRulesCubit>(
+            create: (_) => AcademicRulesCubit(),
+            child: AcademicLoadRulesScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanGrading:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<GradingCubit>(
+            create: (_) => GradingCubit(),
+            child: GradePointsScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanFieldTraining:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          BlocProvider<FieldTrainingCubit>(
+            create: (_) => FieldTrainingCubit(),
+            child: FieldTrainingSettingsScreen(plan: plan),
+          ),
+          settings,
+        );
+
+      case AppRoutes.studyPlanImport:
+        final plan = settings.arguments as StudyPlanModel;
+        return _slideRoute(
+          ImportCurriculumScreen(plan: plan),
+          settings,
+        );
 
       default:
         return _slideRoute(

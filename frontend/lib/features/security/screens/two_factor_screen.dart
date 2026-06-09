@@ -133,10 +133,12 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
           ),
         ),
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          Navigator.of(context).pop(_twoFactorEnabled);
-          return false;
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            Navigator.of(context).pop(_twoFactorEnabled);
+          }
         },
         child: SingleChildScrollView(
           child: Padding(

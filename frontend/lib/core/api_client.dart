@@ -29,11 +29,25 @@ class ApiClient {
     String? baseUrl,
     SupabaseClient? supabaseClient,
     Dio? dio,
-  })  : baseUrl = baseUrl ?? Environment.apiBaseUrl,
+  })  : baseUrl = _normalizeBaseUrl(baseUrl ?? Environment.apiBaseUrl),
         supabase = supabaseClient ?? Supabase.instance.client,
         _dio = dio ?? Dio() {
     _dio.options.connectTimeout = const Duration(seconds: 15);
     _dio.options.receiveTimeout = const Duration(seconds: 15);
+  }
+
+  static String _normalizeBaseUrl(String value) {
+    final trimmed = value.endsWith('/')
+        ? value.substring(0, value.length - 1)
+        : value;
+    return trimmed.endsWith('/api/v1') ? trimmed : '$trimmed/api/v1';
+  }
+
+  String _url(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    return path.startsWith('/') ? '$baseUrl$path' : '$baseUrl/$path';
   }
 
   /// Helper to get or refresh Supabase Auth Token
@@ -153,7 +167,7 @@ class ApiClient {
   }) async {
     final response = await _requestWithRetry(
       (headers) => _dio.get(
-        '$baseUrl$path',
+        _url(path),
         queryParameters: queryParams,
         options: Options(headers: headers),
       ),
@@ -171,7 +185,7 @@ class ApiClient {
   }) async {
     final response = await _requestWithRetry(
       (headers) => _dio.post(
-        '$baseUrl$path',
+        _url(path),
         data: body,
         options: Options(headers: headers),
       ),
@@ -189,7 +203,7 @@ class ApiClient {
   }) async {
     final response = await _requestWithRetry(
       (headers) => _dio.delete(
-        '$baseUrl$path',
+        _url(path),
         data: body,
         options: Options(headers: headers),
       ),
@@ -207,7 +221,7 @@ class ApiClient {
   }) async {
     final response = await _requestWithRetry(
       (headers) => _dio.get<List<int>>(
-        '$baseUrl$path',
+        _url(path),
         queryParameters: queryParams,
         options: Options(
           headers: headers,
@@ -239,7 +253,7 @@ class ApiClient {
 
     final response = await _requestWithRetry(
       (headers) => _dio.post(
-        '$baseUrl$path',
+        _url(path),
         data: formData,
         options: Options(
           headers: {

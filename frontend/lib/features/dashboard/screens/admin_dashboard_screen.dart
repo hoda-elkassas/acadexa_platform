@@ -1,8 +1,8 @@
-// file: lib/features/dashboard/admin/admin_dashboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_gradients.dart';
-//import '../../../core/themes/app_radius.dart';
+import '../../../core/themes/app_radius.dart';
 import '../../../core/themes/app_spacing.dart';
 import '../../../core/themes/app_typography.dart';
 import '../../../shared/widgets/cards/ac_card.dart';
@@ -11,6 +11,17 @@ import '../../../shared/widgets/chips/ac_chips.dart';
 import '../../../shared/widgets/states/ac_states.dart';
 import '../../../shared/widgets/navigation/ac_navigation.dart';
 import '../../../shared/widgets/buttons/ac_button.dart';
+
+// Import features screens
+import '../../students/screens/students_list_screen.dart';
+import '../../study_plan/screens/study_plans_list_screen.dart';
+import '../../departments/screens/departments_screen.dart';
+import '../../reports/screens/reports_dashboard_screen.dart';
+import '../../system/screens/system_settings_screen.dart';
+
+// Import features cubits
+import '../../study_plan/cubit/study_plan_cubit.dart';
+import '../../departments/cubit/departments_cubit.dart';
 
 // ─── Data contracts ───────────────────────────────────────────────────────
 class AdminKpiData {
@@ -103,6 +114,7 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _navIndex = 0;
+  int _academicSubTab = 0;
 
   static const _navItems = [
     AcNavItem(
@@ -170,6 +182,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _ => 'Acadexa',
   };
 
+  Widget _buildSubTabBtn(int index, String label) {
+    final isSelected = _academicSubTab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _academicSubTab = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary500 : Colors.transparent,
+          borderRadius: AppRadius.brPill,
+          border: Border.all(
+            color: isSelected ? AppColors.primary500 : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.labelMedium.copyWith(
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _bodyFor(int i) => switch (i) {
     0 => _OverviewTab(
       kpiData: widget.kpiData,
@@ -181,6 +217,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       isLoadingTrend: widget.isLoadingTrend,
       isLoadingActivity: widget.isLoadingActivity,
     ),
+    1 => const StudentsListScreen(),
+    2 => Column(
+          children: [
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              child: Row(
+                children: [
+                  _buildSubTabBtn(0, 'الخطط الدراسية'),
+                  const SizedBox(width: AppSpacing.md),
+                  _buildSubTabBtn(1, 'الأقسام والبرامج'),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _academicSubTab == 0
+                  ? BlocProvider<StudyPlanCubit>(
+                      create: (_) => StudyPlanCubit(),
+                      child: const StudyPlansListScreen(),
+                    )
+                  : BlocProvider<DepartmentsCubit>(
+                      create: (_) => DepartmentsCubit(),
+                      child: const DepartmentsScreen(),
+                    ),
+            ),
+          ],
+        ),
+    3 => const ReportsDashboardScreen(),
+    4 => const SystemSettingsScreen(),
     _ => const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
   };
 }

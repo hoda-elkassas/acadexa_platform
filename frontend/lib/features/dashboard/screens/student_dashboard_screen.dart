@@ -11,6 +11,9 @@ import '../../../shared/widgets/charts/ac_charts.dart';
 import '../../../shared/widgets/chips/ac_chips.dart';
 import '../../../shared/widgets/states/ac_states.dart';
 import '../../../shared/widgets/navigation/ac_navigation.dart';
+import '../../transcript/screens/plan_compliance_screen.dart';
+import '../../transcript/screens/graduation_tracking_screen.dart';
+import '../../expert_system/screens/smart_assistant_screen.dart';
 
 // ─── Data contracts ───────────────────────────────────────────────────────
 class StudentProfileData {
@@ -213,6 +216,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             onCourseRegister: widget.onCourseRegister,
             onRequestAdvisor: widget.onRequestAdvisor,
           ),
+        1 => const PlanComplianceScreen(),
+        2 => const GraduationTrackingScreen(),
+        3 => const SmartAssistantScreen(),
         _ =>
           const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
       };

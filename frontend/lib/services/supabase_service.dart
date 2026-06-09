@@ -1,8 +1,7 @@
 import '../data/services/base_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService extends BaseService {
-  SupabaseService([SupabaseClient? customClient]) : super(customClient);
+  SupabaseService([super.customClient]);
 
   // ── Students ──────────────────────────────────────────────────────────
 
@@ -17,7 +16,7 @@ class SupabaseService extends BaseService {
         query = query.eq('level', level);
       }
       final res = await query.order('name_ar');
-      return List<Map<String, dynamic>>.from(res as List);
+      return List<Map<String, dynamic>>.from(res);
     }, context: 'SupabaseService.getStudents');
   }
 
@@ -25,7 +24,7 @@ class SupabaseService extends BaseService {
   Future<Map<String, dynamic>> getStudentById(String id) async {
     return safeCall(() async {
       final res = await client.from('students').select('*, departments(name_ar)').eq('id', id).single();
-      return res as Map<String, dynamic>;
+      return res;
     }, context: 'SupabaseService.getStudentById');
   }
 
@@ -48,7 +47,7 @@ class SupabaseService extends BaseService {
         query = query.eq('department_id', departmentId);
       }
       final res = await query.order('name');
-      return List<Map<String, dynamic>>.from(res as List);
+      return List<Map<String, dynamic>>.from(res);
     }, context: 'SupabaseService.getStudyPlans');
   }
 
@@ -56,7 +55,7 @@ class SupabaseService extends BaseService {
   Future<Map<String, dynamic>> getStudyPlanById(String id) async {
     return safeCall(() async {
       final res = await client.from('study_plans').select('*').eq('id', id).single();
-      return res as Map<String, dynamic>;
+      return res;
     }, context: 'SupabaseService.getStudyPlanById');
   }
 
@@ -64,7 +63,7 @@ class SupabaseService extends BaseService {
   Future<Map<String, dynamic>> createStudyPlan(Map<String, dynamic> data) async {
     return safeCall(() async {
       final res = await client.from('study_plans').insert(data).select().single();
-      return res as Map<String, dynamic>;
+      return res;
     }, context: 'SupabaseService.createStudyPlan');
   }
 
@@ -72,7 +71,7 @@ class SupabaseService extends BaseService {
   Future<Map<String, dynamic>> updateStudyPlan(String id, Map<String, dynamic> data) async {
     return safeCall(() async {
       final res = await client.from('study_plans').update(data).eq('id', id).select().single();
-      return res as Map<String, dynamic>;
+      return res;
     }, context: 'SupabaseService.updateStudyPlan');
   }
 
@@ -87,7 +86,7 @@ class SupabaseService extends BaseService {
           .eq('student_id', studentId)
           .eq('is_latest', true)
           .maybeSingle();
-      return res as Map<String, dynamic>?;
+      return res;
     }, context: 'SupabaseService.getLatestAnalysis');
   }
 
@@ -127,7 +126,7 @@ class SupabaseService extends BaseService {
         'is_private': isPrivate,
         'created_by': currentUserId,
       }).select().single();
-      return res as Map<String, dynamic>;
+      return res;
     }, context: 'SupabaseService.addAdvisorNote');
   }
 

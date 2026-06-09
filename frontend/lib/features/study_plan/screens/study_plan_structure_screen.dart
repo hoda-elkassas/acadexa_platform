@@ -144,7 +144,7 @@ class _StudyPlanStructureScreenState extends State<StudyPlanStructureScreen> {
                 color: AppColors.primary50,
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, color: AppColors.primary700),
+                    const Icon(Icons.info_outline_rounded, color: AppColors.primary700),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
@@ -166,7 +166,7 @@ class _StudyPlanStructureScreenState extends State<StudyPlanStructureScreen> {
                     return Card(
                       margin: const EdgeInsets.only(bottom: AppSpacing.md),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: AppRadius.brCard,
                         side: BorderSide(color: AppColors.border),
                       ),
