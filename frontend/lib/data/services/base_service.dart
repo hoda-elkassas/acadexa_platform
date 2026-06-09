@@ -3,7 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Base service providing shared Supabase client and helpers.
 abstract class BaseService {
-  SupabaseClient get client => Supabase.instance.client;
+  final SupabaseClient client;
+
+  BaseService([SupabaseClient? customClient])
+      : client = customClient ?? Supabase.instance.client;
 
   /// Paginated select helper.
   /// Returns [from, to] range for Supabase .range() call.

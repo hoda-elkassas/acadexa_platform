@@ -12,10 +12,10 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "python_backend"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "python_backend"))
 
 from dotenv import load_dotenv
-load_dotenv("python_backend/.env")
+load_dotenv("backend/.env")
 
 print("=" * 60)
 print("🎓  ACADEXA  –  Database Diagnostic Report")
@@ -92,8 +92,8 @@ if broken_tables:
 # ── 5. Backend Import Test ────────────────────────────────────
 print(f"\n🚀  5. Backend Import Test")
 try:
-    sys.path.insert(0, str(Path(__file__).parent / "python_backend"))
-    from api.main import app
+    sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+    from main import app
     route_count = len([r for r in app.routes if hasattr(r, "methods")])
     print(f"   ✅  FastAPI app imported OK — {route_count} routes registered")
 except Exception as e:
@@ -101,5 +101,5 @@ except Exception as e:
 
 print("\n" + "=" * 60)
 print("📖  To start the backend: ")
-print("   cd python_backend && source venv/bin/activate && python run.py")
+print("   cd backend && source ../python_backend/venv/bin/activate && uvicorn main:app --reload")
 print("=" * 60)
