@@ -1,0 +1,1 @@
+﻿# Analysis router. Endpoints: POST /analyze/{student_id}, POST /analyze-batch, GET /batch-status/{job_id}, GET /result/{student_id}, GET /issues/{student_id}, GET /simulate, GET /graduation-readiness/{student_id}, GET /smart-recommendations/{student_id}, POST /chat/{student_id}. Delegates to analysis_service and expert_engine.

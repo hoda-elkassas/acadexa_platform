@@ -1,0 +1,1 @@
+﻿# Expert system rules for field training: FIELD_TRAINING_MISSING (mandatory_for_graduation=true but no field training courses found), FIELD_TRAINING_INCOMPLETE (started but not all levels completed), FIELD_TRAINING_FAILED (failed one or more levels). Reads field_training_rules from facts.

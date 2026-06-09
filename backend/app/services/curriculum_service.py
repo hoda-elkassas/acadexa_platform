@@ -1,0 +1,1 @@
+﻿# Handles full study-plan import and export as JSON. Export: reads all related tables (study_plans, courses, prerequisites, elective_groups, plan_structure, grading_scales, etc.) and serializes to one JSON object. Import: validates JSON structure then inserts all tables in the correct FK order. Copy: clones an existing plan to a new department/year.

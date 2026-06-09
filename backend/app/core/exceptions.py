@@ -1,0 +1,1 @@
+﻿# Custom HTTP exception classes and a global exception handler registered in main.py. Covers 400 BadRequest, 401 Unauthorized, 403 Forbidden, 404 NotFound, 422 Validation, 500 ServerError with Arabic-friendly messages.

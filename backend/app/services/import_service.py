@@ -1,0 +1,1 @@
+﻿# Takes the parsed student rows from file_parser and persists them to Supabase. Creates import_job record, resolves the correct study_plan per student via resolve_student_plan(), then bulk-inserts students → student_semesters → student_courses. Updates import_job with success/failure counts.

@@ -1,0 +1,1 @@
+﻿# Sends push notifications via Firebase Cloud Messaging (FCM). Stores device FCM tokens, sends single and bulk notifications, and logs notification history. Also supports email notifications as a fallback (via SMTP or Supabase Edge Functions).

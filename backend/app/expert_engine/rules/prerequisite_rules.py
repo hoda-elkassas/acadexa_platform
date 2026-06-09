@@ -1,0 +1,1 @@
+﻿# Expert system rules for prerequisites: MISSING_PREREQUISITE (student took a course without completing its prerequisite), PREREQUISITE_FAILED (prerequisite was taken but failed), CONCURRENT_ENROLLMENT_VIOLATION (prerequisite must be prior term). Checks against the prerequisites table.

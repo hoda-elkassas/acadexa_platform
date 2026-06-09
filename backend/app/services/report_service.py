@@ -1,0 +1,1 @@
+﻿# Generates PDF and Excel reports by fetching data from Supabase and rendering templates. Uses reportlab for PDF (student transcript, department summary) and xlsxwriter for Excel exports. Returns bytes to be streamed as FileResponse.

@@ -1,0 +1,1 @@
+﻿# Reads uploaded Excel (.xlsx) or PDF files and converts them to a list of ParsedStudentRow objects. Handles multiple sheet formats, Arabic column names, grade letter mapping, and semester detection. Uses openpyxl for Excel and PyMuPDF (fitz) for PDF.

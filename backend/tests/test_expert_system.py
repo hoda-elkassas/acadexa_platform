@@ -1,0 +1,1 @@
+﻿# Tests for each rule module in isolation: test GPA rules with values above/below thresholds, test hours rules for level transitions, test prerequisite detection, test graduation eligibility calculation. Uses mock facts dicts without real DB.

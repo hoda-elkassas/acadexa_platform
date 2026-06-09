@@ -1,0 +1,1 @@
+﻿# Pydantic schemas for expert-system analysis: AnalysisRequest, AnalysisResultResponse, AnalysisIssue, AnalysisRecommendation, BatchAnalysisRequest, BatchAnalysisStatus, SimulationRequest, SimulationResponse, GraduationReadinessResponse, SmartRecommendationsResponse.

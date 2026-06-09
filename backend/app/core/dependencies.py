@@ -1,0 +1,1 @@
+﻿# FastAPI dependency functions injected into route handlers: get_current_user (verifies JWT), require_advisor_or_above (role guard), require_department_head, require_admin. Also provides pagination params.

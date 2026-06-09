@@ -1,0 +1,1 @@
+﻿# Orchestrates the full analysis flow for one or many students. Calls fact_loader to gather data, runs rule_engine, calls result_builder to persist. Handles force_refresh logic (skip if analyzed in last 24h). Also manages background batch jobs.
