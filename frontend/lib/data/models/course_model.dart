@@ -1,5 +1,85 @@
 // file: lib/data/models/course_model.dart
 
+enum CourseType {
+  mandatory,
+  elective,
+  fieldTraining,
+  graduationProject,
+  universityMandatory,
+  universityElective,
+  collegeMandatory,
+  collegeElective,
+  departmentMandatory,
+  departmentElective,
+  freeElective;
+
+  String toJson() {
+    switch (this) {
+      case CourseType.fieldTraining:
+        return 'field_training';
+      case CourseType.graduationProject:
+        return 'graduation_project';
+      case CourseType.universityMandatory:
+        return 'university_mandatory';
+      case CourseType.universityElective:
+        return 'university_elective';
+      case CourseType.collegeMandatory:
+        return 'college_mandatory';
+      case CourseType.collegeElective:
+        return 'college_elective';
+      case CourseType.departmentMandatory:
+        return 'department_mandatory';
+      case CourseType.departmentElective:
+        return 'department_elective';
+      case CourseType.freeElective:
+        return 'free_elective';
+      default:
+        return name;
+    }
+  }
+
+  static CourseType fromJson(String? value) {
+    switch (value) {
+      case 'mandatory':
+      case 'compulsory':
+        return CourseType.mandatory;
+      case 'elective':
+        return CourseType.elective;
+      case 'field_training':
+      case 'fieldTraining':
+      case 'training':
+        return CourseType.fieldTraining;
+      case 'graduation_project':
+      case 'graduationProject':
+      case 'project':
+        return CourseType.graduationProject;
+      case 'university_mandatory':
+      case 'universityMandatory':
+        return CourseType.universityMandatory;
+      case 'university_elective':
+      case 'universityElective':
+        return CourseType.universityElective;
+      case 'college_mandatory':
+      case 'collegeMandatory':
+        return CourseType.collegeMandatory;
+      case 'college_elective':
+      case 'collegeElective':
+        return CourseType.collegeElective;
+      case 'department_mandatory':
+      case 'departmentMandatory':
+        return CourseType.departmentMandatory;
+      case 'department_elective':
+      case 'departmentElective':
+        return CourseType.departmentElective;
+      case 'free_elective':
+      case 'freeElective':
+        return CourseType.freeElective;
+      default:
+        return CourseType.mandatory;
+    }
+  }
+}
+
 class CourseModel {
   const CourseModel({
     this.id,
@@ -14,7 +94,7 @@ class CourseModel {
     this.fieldHours = 0,
     required this.level,
     required this.term,
-    this.courseType = 'mandatory',
+    this.courseType = CourseType.mandatory,
     this.gradingConfig,
     this.gradingScaleId,
     this.notes,
@@ -36,7 +116,7 @@ class CourseModel {
   final int fieldHours;
   final int level;
   final String term; // fall, spring, summer
-  final String courseType; // mandatory, elective, project, training
+  final CourseType courseType;
   final Map<String, dynamic>? gradingConfig;
   final String? gradingScaleId;
   final String? notes;
@@ -67,7 +147,7 @@ class CourseModel {
       fieldHours: (json['field_hours'] as int?) ?? 0,
       level: json['level'] as int,
       term: json['term'] as String,
-      courseType: (json['course_type'] as String?) ?? 'mandatory',
+      courseType: CourseType.fromJson(json['course_type'] as String?),
       gradingConfig: json['grading_config'] is Map
           ? Map<String, dynamic>.from(json['grading_config'] as Map)
           : null,
@@ -96,7 +176,7 @@ class CourseModel {
         'field_hours': fieldHours,
         'level': level,
         'term': term,
-        'course_type': courseType,
+        'course_type': courseType.toJson(),
         'grading_config': gradingConfig ?? defaultGradingConfig,
         if (gradingScaleId != null) 'grading_scale_id': gradingScaleId,
         if (notes != null) 'notes': notes,
@@ -116,7 +196,7 @@ class CourseModel {
         'field_hours': fieldHours,
         'level': level,
         'term': term,
-        'course_type': courseType,
+        'course_type': courseType.toJson(),
         'grading_config': gradingConfig ?? defaultGradingConfig,
         'grading_scale_id': gradingScaleId,
         'notes': notes,
@@ -136,7 +216,7 @@ class CourseModel {
     int? fieldHours,
     int? level,
     String? term,
-    String? courseType,
+    CourseType? courseType,
     Map<String, dynamic>? gradingConfig,
     String? gradingScaleId,
     String? notes,

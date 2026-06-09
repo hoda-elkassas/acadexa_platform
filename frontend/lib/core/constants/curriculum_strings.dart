@@ -130,4 +130,50 @@ abstract class CurriculumStrings {
   static const departmentCode = 'رمز القسم';
   static const departmentNameAr = 'اسم القسم (عربي)';
   static const departmentNameEn = 'اسم القسم (إنجليزي)';
+
+  // ─── New Curriculum Strings from Specification ──────────────────────
+  // ==================== StudyPlansListScreen ====================
+  static const String studyPlansTitle = 'اللوائح الدراسية';
+  static const String newPlanButton = 'لائحة جديدة';
+  static const String searchHint = 'ابحث عن لائحة...';
+
+  // ==================== AddEditPlanScreen ====================
+  static const String addPlanTitle = 'إضافة لائحة جديدة';
+  static const String editPlanTitle = 'تعديل اللائحة';
+  static const String planNameLabel = 'اسم اللائحة';
+  static const String academicYearLabel = 'السنة الأكاديمية';
+  static const String totalGraduationCredits = 'إجمالي ساعات التخرج';
+
+  // ==================== AddEditCourseDialog ====================
+  static const String addCourseTitle = 'إضافة مادة جديدة';
+  static const String editCourseTitle = 'تعديل المادة';
+  static const String courseCodeLabel = 'كود المادة';
+
+
+  // ==================== ManagePrerequisitesScreen ====================
+  static const String prerequisitesTitle = 'إدارة المتطلبات السابقة';
+  static const String requireAll = 'يجب اجتياز جميع المواد';
+  static const String requireAny = 'يجب اجتياز مادة واحدة على الأقل';
+
+  // ==================== ElectiveGroupsScreen ====================
+  static const String electiveGroupsTitle = 'المجموعات الاختيارية';
+  static const String newGroupButton = 'مجموعة جديدة';
+
+  // ==================== StudyPlanStructureScreen ====================
+  static const String planStructureTitle = 'هيكل الخطة الدراسية';
+  static const String transitionRules = 'شروط الانتقال بين المستويات';
+
+  // ==================== GradePointsScreen ====================
+  static const String gradePointsTitle = 'جدول التقديرات';
+
+  // ==================== AcademicLoadRulesScreen ====================
+  static const String academicLoadTitle = 'قواعد العبء الدراسي';
+  static const String graduationConditions = 'شروط التخرج العامة';
+
+  // ==================== FieldTrainingSettingsScreen ====================
+  static const String fieldTrainingTitle = 'إعدادات التدريب الميداني';
+
+  // ==================== Import/Export ====================
+  static const String importTitle = 'استيراد لائحة';
+  static const String exportTitle = 'تصدير اللائحة';
 }

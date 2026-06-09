@@ -16,6 +16,11 @@ class AcademicLoadRulesModel {
     this.requiresCivicLiteracy = true,
     this.civicLiteracyCount = 2,
     this.requiresCommunityCourse = true,
+    this.probationMinGpa,
+    this.probationAfterSemesters,
+    this.probationMaxHours,
+    this.suspensionConsecutiveSemesters,
+    this.suspensionMinGpa,
   });
 
   final String? id;
@@ -32,6 +37,11 @@ class AcademicLoadRulesModel {
   final bool requiresCivicLiteracy;
   final int? civicLiteracyCount;
   final bool requiresCommunityCourse;
+  final double? probationMinGpa;
+  final int? probationAfterSemesters;
+  final int? probationMaxHours;
+  final int? suspensionConsecutiveSemesters;
+  final double? suspensionMinGpa;
 
   factory AcademicLoadRulesModel.fromJson(Map<String, dynamic> json) {
     return AcademicLoadRulesModel(
@@ -51,6 +61,11 @@ class AcademicLoadRulesModel {
       civicLiteracyCount: json['civic_literacy_count'] as int?,
       requiresCommunityCourse:
           (json['requires_community_course'] as bool?) ?? true,
+      probationMinGpa: (json['probation_min_gpa'] as num?)?.toDouble(),
+      probationAfterSemesters: json['probation_after_semesters'] as int?,
+      probationMaxHours: json['probation_max_hours'] as int?,
+      suspensionConsecutiveSemesters: json['suspension_consecutive_semesters'] as int?,
+      suspensionMinGpa: (json['suspension_min_gpa'] as num?)?.toDouble(),
     );
   }
 
@@ -72,6 +87,11 @@ class AcademicLoadRulesModel {
         if (civicLiteracyCount != null)
           'civic_literacy_count': civicLiteracyCount,
         'requires_community_course': requiresCommunityCourse,
+        if (probationMinGpa != null) 'probation_min_gpa': probationMinGpa,
+        if (probationAfterSemesters != null) 'probation_after_semesters': probationAfterSemesters,
+        if (probationMaxHours != null) 'probation_max_hours': probationMaxHours,
+        if (suspensionConsecutiveSemesters != null) 'suspension_consecutive_semesters': suspensionConsecutiveSemesters,
+        if (suspensionMinGpa != null) 'suspension_min_gpa': suspensionMinGpa,
       };
 
   Map<String, dynamic> toUpdateJson() => {
@@ -87,6 +107,11 @@ class AcademicLoadRulesModel {
         'requires_civic_literacy': requiresCivicLiteracy,
         'civic_literacy_count': civicLiteracyCount,
         'requires_community_course': requiresCommunityCourse,
+        'probation_min_gpa': probationMinGpa,
+        'probation_after_semesters': probationAfterSemesters,
+        'probation_max_hours': probationMaxHours,
+        'suspension_consecutive_semesters': suspensionConsecutiveSemesters,
+        'suspension_min_gpa': suspensionMinGpa,
       };
 
   AcademicLoadRulesModel copyWith({
@@ -104,6 +129,11 @@ class AcademicLoadRulesModel {
     bool? requiresCivicLiteracy,
     int? civicLiteracyCount,
     bool? requiresCommunityCourse,
+    double? probationMinGpa,
+    int? probationAfterSemesters,
+    int? probationMaxHours,
+    int? suspensionConsecutiveSemesters,
+    double? suspensionMinGpa,
   }) {
     return AcademicLoadRulesModel(
       id: id ?? this.id,
@@ -122,6 +152,12 @@ class AcademicLoadRulesModel {
       civicLiteracyCount: civicLiteracyCount ?? this.civicLiteracyCount,
       requiresCommunityCourse:
           requiresCommunityCourse ?? this.requiresCommunityCourse,
+      probationMinGpa: probationMinGpa ?? this.probationMinGpa,
+      probationAfterSemesters: probationAfterSemesters ?? this.probationAfterSemesters,
+      probationMaxHours: probationMaxHours ?? this.probationMaxHours,
+      suspensionConsecutiveSemesters:
+          suspensionConsecutiveSemesters ?? this.suspensionConsecutiveSemesters,
+      suspensionMinGpa: suspensionMinGpa ?? this.suspensionMinGpa,
     );
   }
 }

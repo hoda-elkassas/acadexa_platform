@@ -252,10 +252,10 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         if (state is CoursesLoaded) {
                           totalCredits = state.courses.fold(0, (sum, c) => sum + c.creditHours);
                           mandatoryCredits = state.courses
-                              .where((c) => c.courseType == 'mandatory')
+                              .where((c) => c.courseType == CourseType.mandatory)
                               .fold(0, (sum, c) => sum + c.creditHours);
                           electiveCredits = state.courses
-                              .where((c) => c.courseType == 'elective')
+                              .where((c) => c.courseType == CourseType.elective)
                               .fold(0, (sum, c) => sum + c.creditHours);
                         }
 
@@ -408,12 +408,12 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                           key: 'type',
                           label: 'نوع المقرر',
                           cellBuilder: (c, _) {
-                            final (label, color) = switch (c.courseType) {
+                            final (label, color) = switch (c.courseType.toJson()) {
                               'mandatory' => ('إجباري', AppColors.primary500),
                               'elective' => ('اختياري', AppColors.warning500),
                               'project' => ('مشروع تخرج', AppColors.success500),
                               'training' => ('تدريب ميداني', AppColors.aiPurple),
-                              _ => (c.courseType, AppColors.textPrimary)
+                              _ => (c.courseType.toJson(), AppColors.textPrimary)
                             };
                             return Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

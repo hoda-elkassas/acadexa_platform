@@ -58,7 +58,7 @@ class _AddEditCourseDialogState extends State<AddEditCourseDialog> {
 
     _selectedLevel = c?.level ?? 1;
     _selectedTerm = c?.term ?? 'fall';
-    _selectedType = c?.courseType ?? 'mandatory';
+    _selectedType = c?.courseType.toJson() ?? 'mandatory';
     _selectedGradingScaleId = c?.gradingScaleId;
     _isActive = c?.isActive ?? true;
 
@@ -95,7 +95,7 @@ class _AddEditCourseDialogState extends State<AddEditCourseDialog> {
       fieldHours: int.parse(_fieldController.text.trim()),
       level: _selectedLevel,
       term: _selectedTerm,
-      courseType: _selectedType,
+      courseType: CourseType.fromJson(_selectedType),
       gradingScaleId: _selectedGradingScaleId,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       isActive: _isActive,

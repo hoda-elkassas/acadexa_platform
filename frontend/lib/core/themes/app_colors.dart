@@ -107,3 +107,26 @@ abstract class AppColors {
   static const Color gradientMid = Color(0xFF1976D2);
   static const Color gradientEnd = Color(0xFF1565C0);
 }
+
+// ─── Spec Design Tokens ──────────────────────────────────────────────
+const kPrimaryBlue     = Color(0xFF0D47A1); // أزرق غامق — الـ primary actions
+const kPrimaryTeal     = Color(0xFF1B8FA6); // تيل — gradient ثاني / accents
+const kDarkNavy        = Color(0xFF0D3B5E); // نيفي — headers / AppBar
+const kMediumTeal      = Color(0xFF5BA4AF); // تيل متوسط — secondary elements
+const kLightBlue       = Color(0xFFADD8E6); // فاتح — backgrounds / hints
+const kScaffoldBg      = Color(0xFFF5F9FA); // خلفية الشاشات (off-white مع صبغة تيل)
+const kTextDark        = Color(0xFF0D1B2A); // النصوص الأساسية
+const kTextMedium      = Color(0xFF546E7A); // النصوص الثانوية / labels
+const kTextLight       = Color(0xFF90A4AE); // placeholder / hints
+const kDivider         = Color(0xFFCFD8DC); // فواصل وحدود خفيفة
+const kWhite           = Color(0xFFFFFFFF);
+const kError           = Color(0xFFD32F2F); // خطأ
+const kSuccess         = Color(0xFF2E7D32); // نجاح
+const kWarning         = Color(0xFFF57C00); // تحذير
+
+const kPrimaryGradient = LinearGradient(
+  colors: [Color(0xFF0D47A1), Color(0xFF1B8FA6)],
+  begin: Alignment.centerLeft,
+  end: Alignment.centerRight,
+);
+

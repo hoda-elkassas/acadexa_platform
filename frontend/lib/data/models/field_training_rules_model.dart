@@ -13,6 +13,7 @@ class FieldTrainingRulesModel {
     this.allowShiftLevel1_2 = false,
     this.allowShiftLevel3_4 = false,
     this.mandatoryForGraduation = true,
+    this.allowCombineForGraduation,
     this.createdAt,
     this.updatedAt,
   });
@@ -28,6 +29,7 @@ class FieldTrainingRulesModel {
   final bool? allowShiftLevel1_2;
   final bool? allowShiftLevel3_4;
   final bool? mandatoryForGraduation;
+  final bool? allowCombineForGraduation;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -47,6 +49,7 @@ class FieldTrainingRulesModel {
       allowShiftLevel1_2: json['allow_shift_level_1_2'] as bool?,
       allowShiftLevel3_4: json['allow_shift_level_3_4'] as bool?,
       mandatoryForGraduation: json['mandatory_for_graduation'] as bool?,
+      allowCombineForGraduation: json['allow_combine_for_graduation'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -67,6 +70,8 @@ class FieldTrainingRulesModel {
         'allow_shift_level_1_2': allowShiftLevel1_2,
         'allow_shift_level_3_4': allowShiftLevel3_4,
         'mandatory_for_graduation': mandatoryForGraduation,
+        if (allowCombineForGraduation != null)
+          'allow_combine_for_graduation': allowCombineForGraduation,
       };
 
   Map<String, dynamic> toUpdateJson() => {
@@ -79,6 +84,7 @@ class FieldTrainingRulesModel {
         'allow_shift_level_1_2': allowShiftLevel1_2,
         'allow_shift_level_3_4': allowShiftLevel3_4,
         'mandatory_for_graduation': mandatoryForGraduation,
+        'allow_combine_for_graduation': allowCombineForGraduation,
       };
 
   FieldTrainingRulesModel copyWith({
@@ -93,6 +99,7 @@ class FieldTrainingRulesModel {
     bool? allowShiftLevel1_2,
     bool? allowShiftLevel3_4,
     bool? mandatoryForGraduation,
+    bool? allowCombineForGraduation,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -112,6 +119,8 @@ class FieldTrainingRulesModel {
       allowShiftLevel3_4: allowShiftLevel3_4 ?? this.allowShiftLevel3_4,
       mandatoryForGraduation:
           mandatoryForGraduation ?? this.mandatoryForGraduation,
+      allowCombineForGraduation:
+          allowCombineForGraduation ?? this.allowCombineForGraduation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

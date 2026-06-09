@@ -10,6 +10,8 @@ class GraduationRequirementsModel {
     this.requiresCivicLiteracy = true,
     this.civicLiteracyCount = 2,
     this.requiresCommunityCourse = true,
+    this.requiresCommunityIssuesCourse,
+    this.communityIssuesCourseCode,
     this.createdAt,
     this.updatedAt,
   });
@@ -22,6 +24,8 @@ class GraduationRequirementsModel {
   final bool? requiresCivicLiteracy;
   final int? civicLiteracyCount;
   final bool? requiresCommunityCourse;
+  final bool? requiresCommunityIssuesCourse;
+  final String? communityIssuesCourseCode;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -35,6 +39,8 @@ class GraduationRequirementsModel {
       requiresCivicLiteracy: json['requires_civic_literacy'] as bool?,
       civicLiteracyCount: json['civic_literacy_count'] as int?,
       requiresCommunityCourse: json['requires_community_course'] as bool?,
+      requiresCommunityIssuesCourse: json['requires_community_issues_course'] as bool?,
+      communityIssuesCourseCode: json['community_issues_course_code'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -52,6 +58,10 @@ class GraduationRequirementsModel {
         'requires_civic_literacy': requiresCivicLiteracy,
         'civic_literacy_count': civicLiteracyCount,
         'requires_community_course': requiresCommunityCourse,
+        if (requiresCommunityIssuesCourse != null)
+          'requires_community_issues_course': requiresCommunityIssuesCourse,
+        if (communityIssuesCourseCode != null)
+          'community_issues_course_code': communityIssuesCourseCode,
       };
 
   Map<String, dynamic> toUpdateJson() => {
@@ -61,6 +71,8 @@ class GraduationRequirementsModel {
         'requires_civic_literacy': requiresCivicLiteracy,
         'civic_literacy_count': civicLiteracyCount,
         'requires_community_course': requiresCommunityCourse,
+        'requires_community_issues_course': requiresCommunityIssuesCourse,
+        'community_issues_course_code': communityIssuesCourseCode,
       };
 
   GraduationRequirementsModel copyWith({
@@ -72,6 +84,8 @@ class GraduationRequirementsModel {
     bool? requiresCivicLiteracy,
     int? civicLiteracyCount,
     bool? requiresCommunityCourse,
+    bool? requiresCommunityIssuesCourse,
+    String? communityIssuesCourseCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -87,6 +101,10 @@ class GraduationRequirementsModel {
       civicLiteracyCount: civicLiteracyCount ?? this.civicLiteracyCount,
       requiresCommunityCourse:
           requiresCommunityCourse ?? this.requiresCommunityCourse,
+      requiresCommunityIssuesCourse:
+          requiresCommunityIssuesCourse ?? this.requiresCommunityIssuesCourse,
+      communityIssuesCourseCode:
+          communityIssuesCourseCode ?? this.communityIssuesCourseCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

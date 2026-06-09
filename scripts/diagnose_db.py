@@ -12,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "python_backend"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
 from dotenv import load_dotenv
 load_dotenv("backend/.env")
@@ -101,5 +101,5 @@ except Exception as e:
 
 print("\n" + "=" * 60)
 print("📖  To start the backend: ")
-print("   cd backend && source ../python_backend/venv/bin/activate && uvicorn main:app --reload")
+print("   cd backend && source venv/bin/activate && uvicorn main:app --reload")
 print("=" * 60)

@@ -160,7 +160,7 @@ class _ImportCurriculumScreenState extends State<ImportCurriculumScreen> {
           labHours: int.tryParse(e['lab_hours']?.toString() ?? '0') ?? 0,
           level: int.tryParse(e['level']?.toString() ?? '1') ?? 1,
           term: e['term']?.toString() ?? 'fall',
-          courseType: e['course_type']?.toString() ?? 'compulsory',
+          courseType: CourseType.fromJson(e['course_type']?.toString() ?? 'compulsory'),
         );
         return model.toInsertJson();
       }).toList();

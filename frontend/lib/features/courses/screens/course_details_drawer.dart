@@ -66,7 +66,7 @@ class CourseDetailsDrawer extends StatelessWidget {
               _buildInfoRow('توزيع الساعات (نظري/عملي/معمل)', '${course.theoryHours} ن / ${course.practicalHours} ع / ${course.labHours} م'),
               _buildInfoRow('المستوى الدراسي', 'المستوى ${course.level}'),
               _buildInfoRow('الفصل الموصى به', course.term == 'fall' ? 'الخريف' : (course.term == 'spring' ? 'الربيع' : 'الصيفي')),
-              _buildInfoRow('نوع المقرر', course.courseType == 'mandatory' ? 'إجباري' : 'اختياري'),
+              _buildInfoRow('نوع المقرر', course.courseType == CourseType.mandatory ? 'إجباري' : 'اختياري'),
               
               const Divider(height: AppSpacing.xl),
 

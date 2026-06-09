@@ -1,6 +1,7 @@
 // file: lib/core/router/app_router.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../data/models/user_profile_model.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
@@ -64,9 +65,61 @@ class AppRouter {
     }
   }
 
+  /// Helper to fetch and normalize role from database.
+  /// Throws [AuthException] if the account is inactive.
+  static Future<String> _fetchUserRole(String userId) async {
+    final client = Supabase.instance.client;
+    
+    // 1. Try app_users
+    try {
+      final res = await client
+          .from('app_users')
+          .select('system_role, is_active')
+          .eq('id', userId)
+          .single();
+
+      // Check if the account is active
+      final isActive = res['is_active'] as bool? ?? true;
+      if (!isActive) {
+        await client.auth.signOut();
+        throw Exception('الحساب غير نشط. يرجى التواصل مع مسؤول النظام.');
+      }
+
+      final systemRole = res['system_role'] as String?;
+      return AppRole.fromString(systemRole).value;
+    } catch (e) {
+      // Re-throw inactive account errors
+      if (e.toString().contains('غير نشط')) rethrow;
+    }
+
+    // 2. Try v_users_with_roles
+    try {
+      final res = await client
+          .from('v_users_with_roles')
+          .select('role_key, legacy_role, is_active')
+          .eq('id', userId)
+          .single();
+
+      final isActive = res['is_active'] as bool? ?? true;
+      if (!isActive) {
+        await client.auth.signOut();
+        throw Exception('الحساب غير نشط. يرجى التواصل مع مسؤول النظام.');
+      }
+
+      final roleKey = res['role_key'] as String? ?? res['legacy_role'] as String?;
+      return AppRole.fromString(roleKey).value;
+    } catch (e) {
+      if (e.toString().contains('غير نشط')) rethrow;
+    }
+
+    // 3. Fallback to auth metadata
+    final user = client.auth.currentUser;
+    final metaRole = user?.userMetadata?['role']?.toString();
+    return AppRole.fromString(metaRole).value;
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-
       // ── Splash: check session → route by role ───────────────────────────
       case AppRoutes.splash:
         return _fadeRoute(
@@ -79,12 +132,7 @@ class AppRouter {
                   return;
                 }
                 try {
-                  final profile = await Supabase.instance.client
-                      .from('user_profiles')
-                      .select('role')
-                      .eq('id', session.user.id)
-                      .single();
-                  final role = profile['role'] as String?;
+                  final role = await _fetchUserRole(session.user.id);
                   if (context.mounted) {
                     Navigator.of(context).pushReplacementNamed(
                       dashboardRouteForRole(role),
@@ -116,12 +164,7 @@ class AppRouter {
                 final user = response.user;
                 if (user == null || !context.mounted) return;
                 try {
-                  final profile = await Supabase.instance.client
-                      .from('user_profiles')
-                      .select('role')
-                      .eq('id', user.id)
-                      .single();
-                  final role = profile['role'] as String?;
+                  final role = await _fetchUserRole(user.id);
                   if (context.mounted) {
                     Navigator.of(context).pushReplacementNamed(
                       dashboardRouteForRole(role),

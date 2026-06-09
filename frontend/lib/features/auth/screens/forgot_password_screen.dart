@@ -1,166 +1,255 @@
 // file: lib/features/auth/screens/forgot_password_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
-//import '../../../core/themes/app_gradients.dart';
-import '../../../core/themes/app_radius.dart';
-import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_typography.dart';
-import '../../../shared/widgets/buttons/ac_button.dart';
-import '../../../shared/widgets/inputs/ac_text_field.dart';
-import '../../../shared/widgets/dialogs/ac_dialogs.dart';
+import '../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../shared/widgets/buttons/primary_button.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
+  final Future<void> Function(String email) onSendCode;
+  final VoidCallback onBack;
+
   const ForgotPasswordScreen({
     super.key,
     required this.onSendCode,
     required this.onBack,
   });
 
-  final Future<void> Function(String email) onSendCode;
-  final VoidCallback onBack;
-
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _emailCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
   bool _isLoading = false;
-  String? _emailError;
+  bool _sent = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  bool _validate() {
-    final v = _emailCtrl.text.trim();
-    if (v.isEmpty) {
-      setState(() => _emailError = 'البريد الإلكتروني مطلوب');
-      return false;
-    }
-    if (!RegExp(r'^[\w\-.+]+@[\w\-]+\.\w{2,}$').hasMatch(v)) {
-      setState(() => _emailError = 'البريد الإلكتروني غير صالح');
-      return false;
-    }
-    setState(() => _emailError = null);
-    return true;
-  }
+  Future<void> _sendOtp() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _sent = false;
+    });
 
-  Future<void> _send() async {
-    if (!_validate()) return;
-    setState(() => _isLoading = true);
     try {
-      await widget.onSendCode(_emailCtrl.text.trim());
+      await Supabase.instance.client.auth.resetPasswordForEmail(
+        _emailController.text.trim(),
+        redirectTo: 'io.supabase.acadexa://reset-callback',
+      );
+
+      setState(() {
+        _sent = true;
+      });
+
+      // التوجيه لشاشة الـ OTP بعد ثانيتين مع تمرير الإيميل
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        widget.onSendCode(_emailController.text.trim());
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = _mapAuthError(e.message);
+        });
+      }
     } catch (e) {
       if (mounted) {
-        AcToast.show(context, message: e.toString(), type: AcToastType.error);
+        setState(() {
+          _errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى';
+        });
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  String _mapAuthError(String message) {
+    if (message.contains('User not found') || message.contains('user_not_found')) {
+      return 'المستخدم غير مسجل بالنظام';
+    }
+    if (message.contains('rate limit') || message.contains('Too many requests')) {
+      return 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً بعد قليل';
+    }
+    return 'حدث خطأ أثناء إرسال رمز التحقق. يرجى المحاولة مرة أخرى';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kScaffoldBg,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: BackButton(
+          color: kPrimaryBlue,
           onPressed: widget.onBack,
         ),
+        title: Text(
+          'استعادة كلمة المرور',
+          style: GoogleFonts.cairo(
+            color: kTextDark,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary50,
-                        borderRadius: AppRadius.brMd,
-                      ),
-                      child: const Icon(
-                        Icons.lock_reset_rounded,
-                        size: 32,
-                        color: AppColors.primary500,
-                      ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+
+                // ① أيقونة توضيحية
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: kLightBlue.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_reset,
+                      color: kPrimaryBlue,
+                      size: 40,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Center(
-                    child: Column(
+                ),
+
+                const SizedBox(height: 24),
+
+                // ② عنوان وشرح
+                Text(
+                  'أدخل بريدك الإلكتروني',
+                  style: GoogleFonts.cairo(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kTextDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'سنرسل إليك رمز التحقق (OTP) على بريدك الإلكتروني لإعادة تعيين كلمة المرور.',
+                  style: GoogleFonts.cairo(
+                    fontSize: 14,
+                    color: kTextMedium,
+                    height: 1.5,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // ③ حقل الإيميل
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: AppTextField(
+                    labelText: 'البريد الإلكتروني',
+                    hintText: 'example@university.edu',
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    controller: _emailController,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'أدخل البريد الإلكتروني';
+                      }
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                        return 'أدخل بريد إلكتروني صالح';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ④ زر إرسال OTP
+                PrimaryButton(
+                  label: 'إرسال رمز التحقق',
+                  isLoading: _isLoading,
+                  onPressed: _sendOtp,
+                ),
+
+                const SizedBox(height: 24),
+
+                // ⑤ رسالة نجاح (تظهر بعد الإرسال)
+                if (_sent) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: kSuccess.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: kSuccess.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'نسيت كلمة المرور',
-                          style: AppTypography.h2,
-                          textDirection: TextDirection.rtl,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          'لا تقلق! سنرسل لك رمز التحقق',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
+                        const Icon(Icons.check_circle_outline, color: kSuccess, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'تم إرسال رمز التحقق بنجاح إلى بريدك الإلكتروني',
+                            style: GoogleFonts.cairo(
+                              color: kSuccess,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textDirection: TextDirection.rtl,
                           ),
-                          textDirection: TextDirection.rtl,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: AcTextField(
-                      controller: _emailCtrl,
-                      label: 'البريد الإلكتروني',
-                      hint: 'example@university.edu',
-                      errorText: _emailError,
-                      keyboardType: TextInputType.emailAddress,
-                      textDirection: TextDirection.ltr,
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      onChanged: (_) => setState(() => _emailError = null),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'سنرسل رمز التحقق إلى بريدك الإلكتروني',
-                    style: AppTypography.bodySmall,
-                    textDirection: TextDirection.rtl,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  AcButton(
-                    label: 'إرسال رمز التحقق',
-                    onPressed: _isLoading ? null : _send,
-                    isLoading: _isLoading,
-                    isFullWidth: true,
-                    size: AcButtonSize.large,
-                    useGradient: true,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Center(
-                    child: TextButton(
-                      onPressed: widget.onBack,
-                      child: Text(
-                        'رجوع إلى تسجيل الدخول',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: AppColors.primary500,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 16),
                 ],
-              ),
+
+                // ⑥ رسالة الخطأ (تظهر فقط لو في error)
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: kError.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: kError.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: kError, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: GoogleFonts.cairo(
+                              color: kError,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ],
             ),
           ),
         ),

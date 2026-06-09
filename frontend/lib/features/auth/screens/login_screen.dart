@@ -1,78 +1,22 @@
 // file: lib/features/auth/screens/login_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/themes/app_colors.dart';
-import '../../../core/themes/app_gradients.dart';
-import '../../../core/themes/app_radius.dart';
-import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_typography.dart';
-import '../../../shared/widgets/buttons/ac_button.dart';
-import '../../../shared/widgets/inputs/ac_text_field.dart';
-import '../../../shared/widgets/dialogs/ac_dialogs.dart';
+import '../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../shared/widgets/buttons/primary_button.dart';
 
-// ─── Login screen data contract ───────────────────────────────────────────
-abstract class LoginScreenStrings {
-  String get loginTitle;
-  String get welcomeBack;
-  String get loginSubtitle;
-  String get emailLabel;
-  String get passwordLabel;
-  String get rememberMeText;
-  String get forgotPasswordText;
-  String get loginButtonText;
-  String get emptyEmailError;
-  String get emptyPasswordError;
-  String get invalidEmailError;
-  String get invalidPasswordError;
-  String get loginFailedTitle;
-  String get invalidCredentialsError;
-  String get networkError;
-  String get serverError;
-  String get accountLockedError;
-  String get tooManyAttemptsError;
-}
-
-class DefaultLoginStrings implements LoginScreenStrings {
-  @override
-  String get loginTitle => 'تسجيل الدخول';
-  @override
-  String get welcomeBack => 'مرحباً بعودتك';
-  @override
-  String get loginSubtitle => 'قم بتسجيل الدخول للمتابعة';
-  @override
-  String get emailLabel => 'البريد الإلكتروني';
-  @override
-  String get passwordLabel => 'كلمة المرور';
-  @override
-  String get rememberMeText => 'تذكرني';
-  @override
-  String get forgotPasswordText => 'نسيت كلمة المرور؟';
-  @override
-  String get loginButtonText => 'تسجيل الدخول';
-  @override
-  String get emptyEmailError => 'البريد الإلكتروني مطلوب';
-  @override
-  String get emptyPasswordError => 'كلمة المرور مطلوبة';
-  @override
-  String get invalidEmailError => 'البريد الإلكتروني غير صالح';
-  @override
-  String get invalidPasswordError => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-  @override
-  String get loginFailedTitle => 'فشل تسجيل الدخول';
-  @override
-  String get invalidCredentialsError =>
-      'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-  @override
-  String get networkError => 'خطأ في الاتصال. يرجى التحقق من الإنترنت';
-  @override
-  String get serverError => 'خطأ في الخادم. يرجى المحاولة لاحقاً';
-  @override
-  String get accountLockedError => 'الحساب مقفل. يرجى التواصل مع الدعم الفني';
-  @override
-  String get tooManyAttemptsError => 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً';
-}
-
-// ─── LoginScreen ──────────────────────────────────────────────────────────
 class LoginScreen extends StatefulWidget {
+  final Future<void> Function({
+    required String email,
+    required String password,
+    required bool rememberMe,
+  }) onLogin;
+  final VoidCallback onForgotPassword;
+  final Future<void> Function()? onGoogleLogin;
+  final Future<void> Function()? onAppleLogin;
+  final dynamic strings;
+  final Widget? logoWidget;
+
   const LoginScreen({
     super.key,
     required this.onLogin,
@@ -83,397 +27,266 @@ class LoginScreen extends StatefulWidget {
     this.logoWidget,
   });
 
-  final Future<void> Function({
-    required String email,
-    required String password,
-    required bool rememberMe,
-  })
-  onLogin;
-  final VoidCallback onForgotPassword;
-  final Future<void> Function()? onGoogleLogin;
-  final Future<void> Function()? onAppleLogin;
-  final LoginScreenStrings? strings;
-  final Widget? logoWidget;
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
-  final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  bool _rememberMe = false;
+  final _emailController = TextEditingController();
+  final _passController = TextEditingController();
   bool _isLoading = false;
-  bool _googleLoading = false;
-  bool _appleLoading = false;
-
-  String? _emailError;
-  String? _passwordError;
-
-  late final AnimationController _slideCtrl;
-  late final Animation<double> _slideAnim;
-
-  LoginScreenStrings get _s => widget.strings ?? DefaultLoginStrings();
-
-  @override
-  void initState() {
-    super.initState();
-    _slideCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..forward();
-    _slideAnim = CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut);
-  }
+  bool _obscure = true;
+  bool _rememberMe = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
-    _passwordCtrl.dispose();
-    _slideCtrl.dispose();
+    _emailController.dispose();
+    _passController.dispose();
     super.dispose();
   }
 
-  bool _validateEmail(String v) {
-    if (v.isEmpty) {
-      setState(() => _emailError = _s.emptyEmailError);
-      return false;
-    }
-    final regex = RegExp(r'^[\w\-.+]+@[\w\-]+\.\w{2,}$');
-    if (!regex.hasMatch(v)) {
-      setState(() => _emailError = _s.invalidEmailError);
-      return false;
-    }
-    setState(() => _emailError = null);
-    return true;
-  }
-
-  bool _validatePassword(String v) {
-    if (v.isEmpty) {
-      setState(() => _passwordError = _s.emptyPasswordError);
-      return false;
-    }
-    if (v.length < 8) {
-      setState(() => _passwordError = _s.invalidPasswordError);
-      return false;
-    }
-    setState(() => _passwordError = null);
-    return true;
-  }
-
   Future<void> _handleLogin() async {
-    final emailOk = _validateEmail(_emailCtrl.text.trim());
-    final passOk = _validatePassword(_passwordCtrl.text);
-    if (!emailOk || !passOk) return;
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    setState(() => _isLoading = true);
     try {
       await widget.onLogin(
-        email: _emailCtrl.text.trim(),
-        password: _passwordCtrl.text,
+        email: _emailController.text.trim(),
+        password: _passController.text,
         rememberMe: _rememberMe,
       );
     } catch (e) {
-      if (!mounted) return;
-      AcToast.show(context, message: e.toString(), type: AcToastType.error);
+      if (mounted) {
+        setState(() {
+          _errorMessage = _mapAuthError(e.toString());
+        });
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  Future<void> _handleGoogle() async {
-    if (widget.onGoogleLogin == null) return;
-    setState(() => _googleLoading = true);
-    try {
-      await widget.onGoogleLogin!();
-    } catch (e) {
-      if (mounted) {
-        AcToast.show(context, message: e.toString(), type: AcToastType.error);
-      }
-    } finally {
-      if (mounted) setState(() => _googleLoading = false);
+  String _mapAuthError(String message) {
+    if (message.contains('Invalid login credentials') || message.contains('invalid_credentials')) {
+      return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
     }
-  }
-
-  Future<void> _handleApple() async {
-    if (widget.onAppleLogin == null) return;
-    setState(() => _appleLoading = true);
-    try {
-      await widget.onAppleLogin!();
-    } catch (e) {
-      if (mounted) {
-        AcToast.show(context, message: e.toString(), type: AcToastType.error);
-      }
-    } finally {
-      if (mounted) setState(() => _appleLoading = false);
+    if (message.contains('Email not confirmed') || message.contains('email_not_confirmed')) {
+      return 'يرجى تأكيد بريدك الإلكتروني أولاً';
     }
+    if (message.contains('لم يتم تفعيل الحساب بعد')) {
+      return 'لم يتم تفعيل الحساب بعد. تواصل مع مسؤول النظام';
+    }
+    if (message.startsWith('Exception: ')) {
+      return message.substring(11);
+    }
+    return 'حدث خطأ، يرجى المحاولة مرة أخرى';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kScaffoldBg,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            //final isWide = constraints.maxWidth > 600;
-            return Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: FadeTransition(
-                    opacity: _slideAnim,
-                    child: SlideTransition(
-                      position: Tween(
-                        begin: const Offset(0, 0.05),
-                        end: Offset.zero,
-                      ).animate(_slideAnim),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ── Logo ────────────────────────────
-                            Center(
-                              child:
-                                  widget.logoWidget ??
-                                  Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: const BoxDecoration(
-                                      gradient: AppGradients.primaryDiagonal,
-                                      borderRadius: AppRadius.brMd,
-                                    ),
-                                    child: const Center(
-                                      child: Text(
-                                        'A',
-                                        style: TextStyle(
-                                          color: AppColors.neutral0,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 24),
 
-                            // ── Title ───────────────────────────
-                            Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    _s.welcomeBack,
-                                    style: AppTypography.h2,
-                                    textDirection: TextDirection.rtl,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xxs),
-                                  Text(
-                                    _s.loginSubtitle,
-                                    style: AppTypography.bodyMedium.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    textDirection: TextDirection.rtl,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
-
-                            // ── Email ───────────────────────────
-                            Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: AcTextField(
-                                controller: _emailCtrl,
-                                label: _s.emailLabel,
-                                hint: 'example@university.edu',
-                                errorText: _emailError,
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                textDirection: TextDirection.ltr,
-                                prefixIcon: const Icon(Icons.email_outlined),
-                                onChanged: (_) {
-                                  if (_emailError != null) {
-                                    setState(() => _emailError = null);
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-
-                            // ── Password ────────────────────────
-                            Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: AcPasswordField(
-                                controller: _passwordCtrl,
-                                label: _s.passwordLabel,
-                                hint: '••••••••',
-                                errorText: _passwordError,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => _handleLogin(),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-
-                            // ── Remember me + Forgot ─────────────
-                            Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => setState(
-                                      () => _rememberMe = !_rememberMe,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Checkbox(
-                                          value: _rememberMe,
-                                          onChanged: (v) => setState(
-                                            () => _rememberMe = v ?? false,
-                                          ),
-                                        ),
-                                        Text(
-                                          _s.rememberMeText,
-                                          style: AppTypography.labelMedium,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  TextButton(
-                                    onPressed: widget.onForgotPassword,
-                                    child: Text(
-                                      _s.forgotPasswordText,
-                                      style: AppTypography.labelMedium.copyWith(
-                                        color: AppColors.primary500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-
-                            // ── Login Button ─────────────────────
-                            AcButton(
-                              label: _isLoading
-                                  ? 'جاري الدخول...'
-                                  : _s.loginButtonText,
-                              onPressed: _isLoading ? null : _handleLogin,
-                              isLoading: _isLoading,
-                              isFullWidth: true,
-                              useGradient: true,
-                              size: AcButtonSize.large,
-                            ),
-
-                            // ── Social login ─────────────────────
-                            if (widget.onGoogleLogin != null ||
-                                widget.onAppleLogin != null) ...[
-                              const SizedBox(height: AppSpacing.lg),
-                              Row(
-                                children: [
-                                  const Expanded(
-                                    child: Divider(color: AppColors.border),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.sm,
-                                    ),
-                                    child: Text(
-                                      'أو',
-                                      style: AppTypography.bodySmall,
-                                    ),
-                                  ),
-                                  const Expanded(
-                                    child: Divider(color: AppColors.border),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Row(
-                                children: [
-                                  if (widget.onGoogleLogin != null)
-                                    Expanded(
-                                      child: _SocialButton(
-                                        label: 'Google',
-                                        icon: Icons.g_mobiledata_rounded,
-                                        isLoading: _googleLoading,
-                                        onTap: _handleGoogle,
-                                      ),
-                                    ),
-                                  if (widget.onGoogleLogin != null &&
-                                      widget.onAppleLogin != null)
-                                    const SizedBox(width: AppSpacing.sm),
-                                  if (widget.onAppleLogin != null)
-                                    Expanded(
-                                      child: _SocialButton(
-                                        label: 'Apple',
-                                        icon: Icons.apple_rounded,
-                                        isLoading: _appleLoading,
-                                        onTap: _handleApple,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ],
+                  // ① اللوجو + اسم التطبيق (نفس الـ Splash بس أصغر)
+                  Image.asset(
+                    'assets/images/Acadexa_Logo.png',
+                    width: 100,
+                    height: 100,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 100,
+                      height: 100,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: kPrimaryGradient,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'A',
+                          style: TextStyle(
+                            color: kWhite,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
+                  const SizedBox(height: 12),
+                  Text(
+                    'Acadexa',
+                    style: GoogleFonts.cairo(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: kPrimaryBlue,
+                    ),
+                  ),
 
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
-    required this.icon,
-    required this.isLoading,
-    required this.onTap,
-  });
+                  const SizedBox(height: 8),
 
-  final String label;
-  final IconData icon;
-  final bool isLoading;
-  final VoidCallback onTap;
+                  // ② subtitle
+                  Text(
+                    'مرحباً بك، سجّل دخولك للمتابعة',
+                    style: GoogleFonts.cairo(
+                      color: kTextMedium,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: isLoading ? null : onTap,
-      borderRadius: AppRadius.brButton,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.brButton,
-          border: Border.all(color: AppColors.border, width: 1.5),
-          color: AppColors.surface,
-        ),
-        child: Center(
-          child: isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 22, color: AppColors.textSecondary),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(label, style: AppTypography.labelMedium),
+                  const SizedBox(height: 32),
+
+                  // ③ حقل الإيميل
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: AppTextField(
+                      labelText: 'البريد الإلكتروني',
+                      hintText: 'example@university.edu',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      controller: _emailController,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'أدخل البريد الإلكتروني';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                          return 'أدخل بريد إلكتروني صالح';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ④ حقل كلمة السر
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: AppTextField(
+                      labelText: 'كلمة المرور',
+                      hintText: '••••••••',
+                      obscureText: _obscure,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                      controller: _passController,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'أدخل كلمة المرور';
+                        }
+                        if (v.length < 6) {
+                          return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ⑤ تذكرني و نسيت كلمة المرور
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            activeColor: kPrimaryTeal,
+                            onChanged: (v) {
+                              setState(() {
+                                _rememberMe = v ?? false;
+                              });
+                            },
+                          ),
+                          Text(
+                            'تذكرني',
+                            style: GoogleFonts.cairo(
+                              color: kTextMedium,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: widget.onForgotPassword,
+                        child: Text(
+                          'نسيت كلمة المرور؟',
+                          style: GoogleFonts.cairo(
+                            color: kPrimaryTeal,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ⑥ زر تسجيل الدخول
+                  PrimaryButton(
+                    label: 'تسجيل الدخول',
+                    isLoading: _isLoading,
+                    onPressed: _handleLogin,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ⑦ رسالة الخطأ (تظهر فقط لو في error)
+                  if (_errorMessage != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: kError.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: kError.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: kError, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: GoogleFonts.cairo(
+                                color: kError,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
-                ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

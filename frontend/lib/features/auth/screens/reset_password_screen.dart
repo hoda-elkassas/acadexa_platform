@@ -1,91 +1,77 @@
 // file: lib/features/auth/screens/reset_password_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/themes/app_colors.dart';
-import '../../../core/themes/app_gradients.dart';
-import '../../../core/themes/app_radius.dart';
-import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_typography.dart';
-import '../../../shared/widgets/buttons/ac_button.dart';
-import '../../../shared/widgets/inputs/ac_text_field.dart';
-import '../../../shared/widgets/dialogs/ac_dialogs.dart';
+import '../../../shared/widgets/inputs/app_text_field.dart';
+import '../../../shared/widgets/buttons/primary_button.dart';
+import '../../../shared/widgets/password_strength.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
+  final Future<void> Function({
+    required String newPassword,
+    required String confirmPassword,
+  }) onReset;
+  final VoidCallback onBack;
+
   const ResetPasswordScreen({
     super.key,
     required this.onReset,
     required this.onBack,
   });
 
-  final Future<void> Function({
-    required String newPassword,
-    required String confirmPassword,
-  })
-  onReset;
-  final VoidCallback onBack;
-
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final _passCtrl = TextEditingController();
-  final _confirmCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _pass1Controller = TextEditingController();
+  final _pass2Controller = TextEditingController();
   bool _isLoading = false;
-  String? _passError;
-  String? _confirmError;
+  bool _obscure1 = true;
+  bool _obscure2 = true;
 
   @override
   void dispose() {
-    _passCtrl.dispose();
-    _confirmCtrl.dispose();
+    _pass1Controller.dispose();
+    _pass2Controller.dispose();
     super.dispose();
   }
 
-  bool _validate() {
-    bool ok = true;
-    final p = _passCtrl.text;
-    final c = _confirmCtrl.text;
-
-    if (p.isEmpty) {
-      setState(() => _passError = 'كلمة المرور مطلوبة');
-      ok = false;
-    } else if (p.length < 8) {
-      setState(() => _passError = 'يجب أن تكون 8 أحرف على الأقل');
-      ok = false;
-    } else if (!p.contains(RegExp(r'[A-Z]'))) {
-      setState(() => _passError = 'يجب أن تحتوي على حرف كبير واحد على الأقل');
-      ok = false;
-    } else if (!p.contains(RegExp(r'[0-9]'))) {
-      setState(() => _passError = 'يجب أن تحتوي على رقم واحد على الأقل');
-      ok = false;
-    } else {
-      setState(() => _passError = null);
-    }
-
-    if (c.isEmpty) {
-      setState(() => _confirmError = 'تأكيد كلمة المرور مطلوب');
-      ok = false;
-    } else if (p != c) {
-      setState(() => _confirmError = 'كلمتا المرور غير متطابقتين');
-      ok = false;
-    } else {
-      setState(() => _confirmError = null);
-    }
-
-    return ok;
-  }
-
-  Future<void> _submit() async {
-    if (!_validate()) return;
+  Future<void> _handleReset() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
+
     try {
       await widget.onReset(
-        newPassword: _passCtrl.text,
-        confirmPassword: _confirmCtrl.text,
+        newPassword: _pass1Controller.text,
+        confirmPassword: _pass2Controller.text,
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تم تغيير كلمة المرور بنجاح ✓',
+              style: GoogleFonts.cairo(),
+            ),
+            backgroundColor: kSuccess,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
-        AcToast.show(context, message: e.toString(), type: AcToastType.error);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'حدث خطأ أثناء تغيير كلمة المرور',
+              style: GoogleFonts.cairo(),
+            ),
+            backgroundColor: kError,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -95,128 +81,131 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kScaffoldBg,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: widget.onBack,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          'كلمة مرور جديدة',
+          style: GoogleFonts.cairo(
+            color: kTextDark,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        gradient: AppGradients.primaryDiagonal,
-                        borderRadius: AppRadius.brMd,
-                      ),
-                      child: const Icon(
-                        Icons.lock_outline_rounded,
-                        size: 32,
-                        color: AppColors.neutral0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'إعادة تعيين كلمة المرور',
-                          style: AppTypography.h2,
-                          textDirection: TextDirection.rtl,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          'أدخل كلمة مرور جديدة قوية',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                          textDirection: TextDirection.rtl,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
 
-                  // Password criteria hint
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
+                // ① أيقونة
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.info50,
-                      borderRadius: AppRadius.brSm,
-                      border: Border.all(
-                        color: AppColors.info500.withValues(alpha: 0.3),
-                      ),
+                      color: kPrimaryTeal.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'يجب أن تحتوي كلمة المرور على:',
-                          style: AppTypography.labelSmall,
-                          textDirection: TextDirection.rtl,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        for (final c in [
-                          '• حرف كبير (A-Z)',
-                          '• حرف صغير (a-z)',
-                          '• رقم (0-9)',
-                          '• 8 أحرف على الأقل',
-                        ])
-                          Text(
-                            c,
-                            style: AppTypography.caption,
-                            textDirection: TextDirection.rtl,
-                          ),
-                      ],
+                    child: const Icon(
+                      Icons.lock_open_outlined,
+                      color: kPrimaryTeal,
+                      size: 40,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                ),
 
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: AcPasswordField(
-                      controller: _passCtrl,
-                      label: 'كلمة المرور الجديدة',
-                      errorText: _passError,
-                      showStrengthIndicator: true,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: 24),
 
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: AcPasswordField(
-                      controller: _confirmCtrl,
-                      label: 'تأكيد كلمة المرور',
-                      errorText: _confirmError,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _submit(),
-                    ),
+                // ② عنوان وشرح
+                Text(
+                  'أنشئ كلمة مرور جديدة',
+                  style: GoogleFonts.cairo(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kTextDark,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'يجب أن تكون 8 أحرف على الأقل وتحتوي على أرقام وحروف.',
+                  style: GoogleFonts.cairo(
+                    fontSize: 14,
+                    color: kTextMedium,
+                    height: 1.5,
+                  ),
+                ),
 
-                  AcButton(
-                    label: 'إعادة تعيين كلمة المرور',
-                    onPressed: _isLoading ? null : _submit,
-                    isLoading: _isLoading,
-                    isFullWidth: true,
-                    size: AcButtonSize.large,
-                    useGradient: true,
+                const SizedBox(height: 32),
+
+                // ③ كلمة المرور الجديدة
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: AppTextField(
+                    labelText: 'كلمة المرور الجديدة',
+                    hintText: '••••••••',
+                    obscureText: _obscure1,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscure1 ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscure1 = !_obscure1),
+                    ),
+                    controller: _pass1Controller,
+                    onChanged: (_) => setState(() {}), // rebuild for strength indicator
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'أدخل كلمة المرور';
+                      if (v.length < 8) return 'كلمة المرور قصيرة جداً';
+                      if (!v.contains(RegExp(r'[0-9]'))) return 'يجب أن تحتوي على أرقام';
+                      return null;
+                    },
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ④ تأكيد كلمة المرور
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: AppTextField(
+                    labelText: 'تأكيد كلمة المرور',
+                    hintText: '••••••••',
+                    obscureText: _obscure2,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscure2 ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscure2 = !_obscure2),
+                    ),
+                    controller: _pass2Controller,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'أدخل تأكيد كلمة المرور';
+                      if (v != _pass1Controller.text) return 'كلمتا المرور غير متطابقتين';
+                      return null;
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ⑤ مؤشر قوة كلمة المرور
+                PasswordStrengthIndicator(password: _pass1Controller.text),
+
+                const SizedBox(height: 32),
+
+                // ⑥ زر الحفظ
+                PrimaryButton(
+                  label: 'حفظ كلمة المرور',
+                  isLoading: _isLoading,
+                  onPressed: _handleReset,
+                ),
+              ],
             ),
           ),
         ),

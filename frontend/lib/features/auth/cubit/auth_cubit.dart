@@ -73,7 +73,7 @@ class AuthCubit extends Cubit<AuthState> {
     if (raw.contains('network') || raw.contains('SocketException')) {
       return 'خطأ في الاتصال. تحقق من الإنترنت';
     }
-    if (raw.contains('user_profiles')) {
+    if (raw.contains('user_profiles') || raw.contains('app_users')) {
       return 'لم يتم تفعيل الحساب بعد. تواصل مع مسؤول النظام';
     }
     return 'حدث خطأ. يرجى المحاولة مرة أخرى';

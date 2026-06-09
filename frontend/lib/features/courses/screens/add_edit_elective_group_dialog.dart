@@ -76,7 +76,7 @@ class _AddEditElectiveGroupDialogState extends State<AddEditElectiveGroupDialog>
       final list = await _courseService.getAllForPlan(widget.planId);
       setState(() {
         // Only display courses marked as elective
-        _electiveCourses = list.where((c) => c.courseType == 'elective').toList();
+        _electiveCourses = list.where((c) => c.courseType == CourseType.elective).toList();
         _loadingCourses = false;
       });
     } catch (e) {

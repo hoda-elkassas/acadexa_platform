@@ -1,16 +1,18 @@
 // file: lib/features/auth/screens/otp_verification_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pinput/pinput.dart';
 import '../../../core/themes/app_colors.dart';
-import '../../../core/themes/app_gradients.dart';
-import '../../../core/themes/app_radius.dart';
-import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_typography.dart';
-import '../../../shared/widgets/buttons/ac_button.dart';
-import '../../../shared/widgets/inputs/ac_text_field.dart';
-import '../../../shared/widgets/dialogs/ac_dialogs.dart';
+import '../../../shared/widgets/buttons/primary_button.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
+  final String email;
+  final Future<void> Function(String otp) onVerify;
+  final Future<void> Function() onResend;
+  final VoidCallback onBack;
+  final int countdownSeconds;
+
   const OtpVerificationScreen({
     super.key,
     required this.email,
@@ -20,22 +22,16 @@ class OtpVerificationScreen extends StatefulWidget {
     this.countdownSeconds = 60,
   });
 
-  final String email;
-  final Future<void> Function(String otp) onVerify;
-  final Future<void> Function() onResend;
-  final VoidCallback onBack;
-  final int countdownSeconds;
-
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+  final _otpController = TextEditingController();
   String _otp = '';
   bool _isLoading = false;
-  bool _otpError = false;
-  String? _otpErrorText;
-  int _remaining = 0;
+  String? _errorMessage;
+  int _countdown = 0;
   Timer? _timer;
 
   @override
@@ -45,38 +41,37 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _startCountdown() {
-    _remaining = widget.countdownSeconds;
+    _countdown = widget.countdownSeconds;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
         return;
       }
-      setState(() => _remaining--);
-      if (_remaining <= 0) t.cancel();
+      setState(() => _countdown--);
+      if (_countdown <= 0) t.cancel();
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _otpController.dispose();
     super.dispose();
   }
 
-  Future<void> _verify() async {
-    if (_otp.length < 6) return;
+  Future<void> _verifyOtp(String token) async {
+    if (token.length < 6) return;
     setState(() {
       _isLoading = true;
-      _otpError = false;
-      _otpErrorText = null;
+      _errorMessage = null;
     });
     try {
-      await widget.onVerify(_otp);
+      await widget.onVerify(token);
     } catch (e) {
       if (mounted) {
         setState(() {
-          _otpError = true;
-          _otpErrorText = 'الرمز غير صحيح. يرجى المحاولة مرة أخرى';
+          _errorMessage = 'الرمز غير صحيح أو انتهت صلاحيته';
         });
       }
     } finally {
@@ -84,23 +79,33 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     }
   }
 
-  Future<void> _resend() async {
+  Future<void> _resendOtp() async {
     try {
       await widget.onResend();
       _startCountdown();
       if (mounted) {
-        AcToast.show(
-          context,
-          message: 'تم إرسال رمز جديد إلى بريدك الإلكتروني',
-          type: AcToastType.success,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تم إرسال رمز جديد إلى بريدك الإلكتروني',
+              style: GoogleFonts.cairo(),
+            ),
+            backgroundColor: kSuccess,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        AcToast.show(
-          context,
-          message: 'حدث خطأ أثناء إعادة إرسال الرمز',
-          type: AcToastType.error,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'حدث خطأ أثناء إعادة إرسال الرمز',
+              style: GoogleFonts.cairo(),
+            ),
+            backgroundColor: kError,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -108,123 +113,195 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Pin themes
+    final defaultPinTheme = PinTheme(
+      width: 48,
+      height: 56,
+      textStyle: GoogleFonts.cairo(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: kTextDark,
+      ),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kDivider),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      textStyle: GoogleFonts.cairo(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: kPrimaryBlue,
+      ),
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kPrimaryBlue, width: 2),
+      ),
+    );
+
+    final errorPinTheme = defaultPinTheme.copyWith(
+      decoration: BoxDecoration(
+        color: kWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kError, width: 1.5),
+      ),
+    );
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: kScaffoldBg,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: BackButton(
+          color: kPrimaryBlue,
           onPressed: widget.onBack,
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: const BoxDecoration(
-                      gradient: AppGradients.primaryDiagonal,
-                      borderRadius: AppRadius.brMd,
-                    ),
-                    child: const Icon(
-                      Icons.mark_email_read_outlined,
-                      size: 32,
-                      color: AppColors.neutral0,
-                    ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 16),
+
+              // ① أيقونة
+              Container(
+                width: 80,
+                height: 80,
+                decoration: const BoxDecoration(
+                  gradient: kPrimaryGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.mark_email_read_outlined,
+                  color: kWhite,
+                  size: 40,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ② عنوان
+              Text(
+                'رمز التحقق',
+                style: GoogleFonts.cairo(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: kTextDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text.rich(
+                TextSpan(
+                  style: GoogleFonts.cairo(
+                    fontSize: 14,
+                    color: kTextMedium,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    'تحقق من حسابك',
-                    style: AppTypography.h2,
-                    textDirection: TextDirection.rtl,
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text.rich(
+                  children: [
+                    const TextSpan(text: 'أُرسل رمز مكوّن من 6 أرقام إلى '),
                     TextSpan(
-                      text: 'أدخل الرمز المرسل إلى ',
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                      text: widget.email,
+                      style: GoogleFonts.cairo(
+                        color: kPrimaryBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                      children: [
-                        TextSpan(
-                          text: widget.email,
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.primary500,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
                     ),
-                    textDirection: TextDirection.rtl,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
+              ),
 
-                  AcOtpField(
-                    length: 6,
-                    onCompleted: (v) => setState(() => _otp = v),
-                    onChanged: (v) {
-                      setState(() {
-                        _otp = v;
-                        _otpError = false;
-                        _otpErrorText = null;
-                      });
-                    },
-                    hasError: _otpError,
-                    errorText: _otpErrorText,
-                  ),
+              const SizedBox(height: 40),
 
-                  const SizedBox(height: AppSpacing.xl),
-                  AcButton(
-                    label: 'تحقق',
-                    onPressed: _otp.length == 6 && !_isLoading ? _verify : null,
-                    isLoading: _isLoading,
-                    isDisabled: _otp.length < 6,
-                    isFullWidth: true,
-                    size: AcButtonSize.large,
-                    useGradient: true,
-                  ),
+              // ③ حقول OTP (6 خانات) — Pinput
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: Pinput(
+                  length: 6,
+                  controller: _otpController,
+                  defaultPinTheme: defaultPinTheme,
+                  focusedPinTheme: focusedPinTheme,
+                  errorPinTheme: errorPinTheme,
+                  forceErrorState: _errorMessage != null,
+                  onCompleted: (pin) {
+                    setState(() => _otp = pin);
+                    _verifyOtp(pin);
+                  },
+                  onChanged: (v) {
+                    setState(() {
+                      _otp = v;
+                      _errorMessage = null;
+                    });
+                  },
+                ),
+              ),
 
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'لم يصلك رمز؟',
-                        style: AppTypography.bodySmall,
-                        textDirection: TextDirection.rtl,
+              const SizedBox(height: 32),
+
+              // ④ زر التحقق
+              PrimaryButton(
+                label: 'تحقق',
+                isLoading: _isLoading,
+                onPressed: _otp.length == 6 ? () => _verifyOtp(_otp) : null,
+              ),
+
+              const SizedBox(height: 24),
+
+              // ⑤ إعادة الإرسال مع countdown
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'لم تستلم الرمز؟ ',
+                    style: GoogleFonts.cairo(
+                      color: kTextMedium,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (_countdown > 0)
+                    Text(
+                      'إعادة الإرسال بعد $_countdown ثانية',
+                      style: GoogleFonts.cairo(
+                        color: kTextLight,
+                        fontSize: 14,
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      _remaining > 0
-                          ? Text(
-                              'يمكنك إعادة الإرسال بعد $_remaining ث',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.textMuted,
-                              ),
-                              textDirection: TextDirection.rtl,
-                            )
-                          : GestureDetector(
-                              onTap: _resend,
-                              child: Text(
-                                'إعادة إرسال الرمز',
-                                style: AppTypography.labelMedium.copyWith(
-                                  color: AppColors.primary500,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: AppColors.primary500,
-                                ),
-                                textDirection: TextDirection.rtl,
-                              ),
-                            ),
-                    ],
-                  ),
+                    )
+                  else
+                    TextButton(
+                      onPressed: _resendOtp,
+                      child: Text(
+                        'إعادة الإرسال',
+                        style: GoogleFonts.cairo(
+                          color: kPrimaryTeal,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                 ],
               ),
-            ),
+
+              // ⑥ رسالة خطأ
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  style: GoogleFonts.cairo(
+                    color: kError,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ],
           ),
         ),
       ),
