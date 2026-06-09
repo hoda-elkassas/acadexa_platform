@@ -1,0 +1,1 @@
+﻿# Tests for the upload endpoints and file_parser service: test valid Excel upload, test invalid file type rejection, test parser with Arabic column names, test import_service student creation, test duplicate student handling.

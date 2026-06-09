@@ -1,0 +1,1 @@
+﻿# The main expert system engine. Accepts a facts dict, instantiates all rule modules, runs them in sequence, and collects issues and recommendations. Supports dry-run mode (simulate without saving). Returns (issues, recommendations, summary).

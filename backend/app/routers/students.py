@@ -1,0 +1,1 @@
+﻿# Students router for server-side operations. Endpoints: GET /{student_id}/full-profile, POST /bulk-update-level, GET /search, POST /{student_id}/recalculate-gpa. Direct Supabase operations that are too heavy for the Flutter client.

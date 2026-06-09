@@ -1,0 +1,1 @@
+﻿# Expert system rules for overall graduation eligibility: aggregates all conditions (hours, GPA, field training, civic literacy, community course, electives) into ELIGIBLE_TO_GRADUATE or NOT_ELIGIBLE_TO_GRADUATE with a detailed checklist. This is the final rule that runs after all others.

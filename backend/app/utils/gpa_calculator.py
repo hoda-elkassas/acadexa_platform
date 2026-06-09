@@ -1,0 +1,1 @@
+﻿# GPA calculation utilities: calculate_gpa_from_courses(courses_list), calculate_semester_gpa(semester_courses), grade_letter_to_points(letter, scale), is_passing_grade(points). Pure functions with no DB access.

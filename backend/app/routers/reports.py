@@ -1,0 +1,1 @@
+﻿# Reports router. Endpoints: GET /student/{id}/pdf, GET /student/{id}/academic-transcript, GET /department/{id}/summary, GET /department/{id}/at-risk, GET /graduation/{dept_id}, GET /semester-performance/{student_id}, GET /plan-comparison, GET /plan-compliance/{student_id}. All return PDF or Excel file responses.

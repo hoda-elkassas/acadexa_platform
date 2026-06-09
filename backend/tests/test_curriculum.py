@@ -1,0 +1,1 @@
+﻿# Tests for curriculum import/export: test export produces valid JSON with all required keys, test import from JSON creates correct DB records, test validate endpoint catches missing required fields, test copy plan creates independent copy.

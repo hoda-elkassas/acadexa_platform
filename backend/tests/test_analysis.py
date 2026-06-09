@@ -1,0 +1,1 @@
+﻿# Integration tests for the full analysis flow: test single student analysis end-to-end, test batch analysis job status, test simulate endpoint with planned courses, test graduation readiness checklist completeness.

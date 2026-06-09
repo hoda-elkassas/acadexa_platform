@@ -1,0 +1,1 @@
+﻿# PDF generation utilities using reportlab: build_student_transcript(student_data) → bytes, build_department_report(dept_data) → bytes, build_at_risk_report(students_list) → bytes. Contains Arabic font setup and RTL text helpers.

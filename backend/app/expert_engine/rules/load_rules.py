@@ -1,0 +1,1 @@
+﻿# Expert system rules for academic load and level transitions: LEVEL_PROMOTION_BLOCKED (not enough hours to move to next level per level_X_to_Y_min_hours), MAX_HOURS_EXCEEDED (registered more than allowed), SUMMER_OVERLOAD (summer hours exceed max_hours_summer), OVERLOAD_GPA_INSUFFICIENT (tried overload but GPA below overload_min_gpa).

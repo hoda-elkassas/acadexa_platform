@@ -1,0 +1,1 @@
+﻿# Expert system rules for credit hours: INSUFFICIENT_HOURS (total passed < required), LOW_PROGRESS (level 3+ but less than 50% complete), SLOW_PACE (estimated graduation delayed by more than 2 years), OVERLOAD_RISK (registered hours exceed max_hours_fall_spring from academic_load_rules).

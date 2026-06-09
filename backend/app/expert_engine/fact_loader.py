@@ -1,0 +1,1 @@
+﻿# Loads all facts needed by the expert system from Supabase in one place: student profile, resolved study plan, graduation_requirements, academic_load_rules, field_training_rules, courses list with prerequisites, elective_groups, and complete student_courses history. Returns a structured 'facts' dict.

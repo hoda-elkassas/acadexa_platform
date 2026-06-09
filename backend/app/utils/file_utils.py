@@ -1,0 +1,1 @@
+﻿# File handling utilities: save_temp_file(upload_file) → local path, delete_temp_file(path), upload_to_supabase_storage(path, bucket, key), get_file_extension(filename), validate_file_type(filename, allowed=['xlsx','pdf']).

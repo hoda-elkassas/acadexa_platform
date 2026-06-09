@@ -1,0 +1,1 @@
+﻿# Expert system rules related to GPA: LOW_GPA (GPA below graduation minimum), GPA_AT_RISK (GPA trending down over last 3 semesters), GPA_IMPROVEMENT_NEEDED (GPA below 2.0), DEAN_LIST_ELIGIBLE (GPA above 3.7). Values read from graduation_requirements in facts dict.

@@ -1,0 +1,1 @@
+﻿# Expert system rules for elective groups: ELECTIVE_HOURS_INSUFFICIENT (completed hours in elective group < min_hours), ELECTIVE_COURSES_INSUFFICIENT (completed courses < min_courses), ELECTIVE_GROUP_NOT_STARTED (no courses taken from a mandatory elective group). Reads elective_groups from facts.

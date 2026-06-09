@@ -1,0 +1,1 @@
+﻿# Pydantic schemas for curriculum import/export: CurriculumExportResponse, CurriculumImportRequest, CurriculumValidationResult, CopyPlanRequest. Matches the full JSON structure of a study plan with all related tables.

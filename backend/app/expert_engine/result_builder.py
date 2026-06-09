@@ -1,0 +1,1 @@
+﻿# Takes the rule engine output (issues, recommendations) and persists them to Supabase: inserts analysis_results, analysis_issues, analysis_recommendations. Marks previous analysis as is_latest=false. Calculates is_eligible_to_graduate flag.
