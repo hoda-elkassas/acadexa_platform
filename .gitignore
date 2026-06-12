@@ -125,3 +125,10 @@ python_backend/storage/temp_uploads/
 python_backend/storage/output/
 python_backend/storage/jobs/
 python_backend/project_structure.txt
+
+# -------------------------------
+# DATA / DOCUMENTS
+# -------------------------------
+*.xlsx
+*.csv
+
