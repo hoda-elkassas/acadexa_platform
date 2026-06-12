@@ -304,7 +304,7 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
                               },
                             ),
                           ),
-                          width: 110,
+                          width: 145,
                         ),
                       ],
                       rows: _filteredStudents,
