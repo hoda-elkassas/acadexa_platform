@@ -1,4 +1,4 @@
-// file: lib/features/courses/screens/course_details_drawer.dart
+// file: lib/features/courses/widgets/course_details_drawer.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/curriculum_strings.dart';
 import '../../../core/themes/app_colors.dart';

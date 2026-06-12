@@ -12,7 +12,7 @@ import '../../../data/models/study_plan_model.dart';
 import '../../../data/services/course_service.dart';
 import '../../../data/models/course_model.dart';
 import '../cubit/elective_groups_cubit.dart';
-import 'add_edit_elective_group_dialog.dart';
+import '../widgets/add_edit_elective_group_dialog.dart';
 
 class ElectiveGroupsScreen extends StatefulWidget {
   const ElectiveGroupsScreen({super.key, required this.plan});

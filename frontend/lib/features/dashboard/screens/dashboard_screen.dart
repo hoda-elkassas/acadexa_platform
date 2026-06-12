@@ -6,6 +6,7 @@ import '../../../core/themes/app_spacing.dart';
 import '../../../core/themes/app_radius.dart';
 import '../../../core/themes/app_typography.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../core/router/app_router.dart' show AppRoutes, CourseDetailArgs;
 import 'admin_dashboard_screen.dart';
 import 'advisor_dashboard_screen.dart';
 import 'student_dashboard_screen.dart';
@@ -456,6 +457,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           currentCourses: _currentCourses,
           gpaTrend: _gpaTrend,
           onRefresh: _loadDashboardData,
+          onCourseDetail: (course) {
+            Navigator.of(context).pushNamed(
+              AppRoutes.courseDetail,
+              arguments: CourseDetailArgs(
+                courseId: course.courseCode,
+                courseName: course.courseName,
+              ),
+            );
+          },
         );
     }
   }

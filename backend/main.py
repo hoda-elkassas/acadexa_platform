@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.database import supabase_admin
-from app.routers import health, upload, analysis, reports, notifications, curriculum, students
+from app.routers import health, upload, analysis, reports, notifications, curriculum, students, db
 
 # Configure logging
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -62,3 +62,4 @@ app.include_router(reports.router,         prefix="/api/v1",        tags=["Repor
 app.include_router(notifications.router,   prefix="/api/v1",        tags=["Notifications"])
 app.include_router(curriculum.router,      prefix="/api/v1",        tags=["Curriculum"])
 app.include_router(students.router,        prefix="/api/v1",        tags=["Students"])
+app.include_router(db.router,              prefix="/api/v1",        tags=["Database Proxy"])

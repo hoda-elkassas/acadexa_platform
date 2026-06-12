@@ -1,4 +1,4 @@
-// file: lib/features/courses/screens/add_edit_elective_group_dialog.dart
+// file: lib/features/courses/widgets/add_edit_elective_group_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/curriculum_strings.dart';

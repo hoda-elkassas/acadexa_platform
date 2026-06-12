@@ -1,6 +1,7 @@
 // file: lib/features/security/screens/two_factor_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 
 class TwoFactorScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isVerifying = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -53,21 +55,33 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
               child: Text('إلغاء', style: GoogleFonts.cairo(color: kTextMedium)),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   _twoFactorEnabled = false;
                 });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'تم إلغاء تفعيل المصادقة الثنائية',
-                      textAlign: TextAlign.right,
-                      style: GoogleFonts.cairo(),
+                try {
+                  final client = Supabase.instance.client;
+                  await client.auth.updateUser(
+                    UserAttributes(
+                      data: {
+                        'two_factor_enabled': false,
+                      },
                     ),
-                    backgroundColor: kWarning,
-                  ),
-                );
+                  );
+                } catch (_) {}
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'تم إلغاء تفعيل المصادقة الثنائية',
+                        textAlign: TextAlign.right,
+                        style: GoogleFonts.cairo(),
+                      ),
+                      backgroundColor: kWarning,
+                    ),
+                  );
+                }
               },
               child: Text(
                 'إيقاف التشغيل',
@@ -85,34 +99,31 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
   }
 
   void _verifyAndEnable() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isVerifying = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 1500));
-
-    if (mounted) {
-      setState(() {
-        _isVerifying = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم تفعيل المصادقة الثنائية بنجاح',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(),
-          ),
-          backgroundColor: kSuccess,
+    if (!_formKey.currentState!.validate()) return;
+    setState(() { _isVerifying = true; _errorMessage = ''; });
+    try {
+      final client = Supabase.instance.client;
+      await client.auth.updateUser(
+        UserAttributes(
+          data: {
+            'two_factor_enabled': true,
+          },
         ),
       );
-
-      // Return the updated 2FA status to the settings screen
-      Navigator.of(context).pop(true);
+      if (mounted) {
+        setState(() { _isVerifying = false; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم تفعيل المصادقة الثنائية بنجاح', textAlign: TextAlign.right, style: GoogleFonts.cairo()),
+            backgroundColor: kSuccess,
+          ),
+        );
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isVerifying = false; _errorMessage = 'فشل التحقق: ${e.toString()}'; });
+      }
     }
   }
 

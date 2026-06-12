@@ -1,4 +1,5 @@
 // file: lib/shared/widgets/tables/ac_data_table.dart
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
@@ -138,28 +139,32 @@ class _AcDataTableState<T> extends State<AcDataTable<T>> {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.brCard,
-        border: Border.all(color: AppColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildHeader(),
-          const Divider(height: 1),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widget.rows.length,
-            separatorBuilder: (context, index) =>
-                const Divider(height: 1, color: AppColors.border),
-            itemBuilder: (_, i) => _buildRow(i),
-          ),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalFixedWidth = widget.columns
+            .where((c) => c.width != null)
+            .fold(0.0, (sum, c) => sum + c.width!);
+        final paddingPerColumn = 2 * AppSpacing.md; // horizontal padding per column
+        final totalPadding = widget.columns.length * paddingPerColumn;
+        final minTableWidth = totalFixedWidth + totalPadding + 200;
+
+        final needsHorizontalScroll = constraints.maxWidth < minTableWidth;
+
+        Widget table = _buildTable();
+
+        if (needsHorizontalScroll) {
+          table = SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const ClampingScrollPhysics(),
+            child: SizedBox(
+              width: math.max(constraints.maxWidth, minTableWidth),
+              child: table,
+            ),
+          );
+        }
+
+        return table;
+      },
     );
   }
 
@@ -281,6 +286,32 @@ class _AcDataTableState<T> extends State<AcDataTable<T>> {
             }),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTable() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.brCard,
+        border: Border.all(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          _buildHeader(),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              itemCount: widget.rows.length,
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.border),
+              itemBuilder: (_, i) => _buildRow(i),
+            ),
+          ),
+        ],
       ),
     );
   }

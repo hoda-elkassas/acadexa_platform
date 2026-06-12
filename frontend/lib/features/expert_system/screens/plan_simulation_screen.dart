@@ -1,5 +1,6 @@
 // file: lib/features/expert_system/screens/plan_simulation_screen.dart
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
 import '../../../core/themes/app_radius.dart';
@@ -14,24 +15,139 @@ class PlanSimulationScreen extends StatefulWidget {
 }
 
 class _PlanSimulationScreenState extends State<PlanSimulationScreen> {
+  final _supabase = Supabase.instance.client;
+
+  bool _isLoading = true;
+  String _errorMessage = '';
+  double _currentGpa = 0.0;
+  int _completedHours = 0;
+  int _totalRequiredHours = 136;
+
   int _selectedHours = 15;
   double _targetGpa = 3.0;
   bool _showResults = false;
+  double _targetSemesterGpa = 0.0;
+  double _expectedCumulativeGpa = 0.0;
+  int _remainingSemesters = 0;
 
-  final List<Map<String, dynamic>> _simulatedCourses = [
-    {'code': 'CS401', 'name': 'نظم التشغيل', 'hours': 3, 'expectedGrade': 'B+'},
-    {'code': 'CS445', 'name': 'الذكاء الاصطناعي', 'hours': 3, 'expectedGrade': 'A-'},
-    {'code': 'CS480', 'name': 'أمن المعلومات', 'hours': 3, 'expectedGrade': 'B'},
-    {'code': 'MATH301', 'name': 'الإحصاء التطبيقي', 'hours': 3, 'expectedGrade': 'A'},
-    {'code': 'CS499', 'name': 'مشروع التخرج', 'hours': 3, 'expectedGrade': 'A-'},
-  ];
+  final List<Map<String, dynamic>> _simulatedCourses = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStudentData();
+  }
+
+  Future<void> _loadStudentData() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        final res = await _supabase
+            .from('student_full_summary')
+            .select('calculated_gpa, total_passed_hours, total_credit_hours')
+            .eq('id', user.id)
+            .single();
+
+        if (mounted) {
+          setState(() {
+            _currentGpa = double.tryParse((res['calculated_gpa'] ?? '0').toString()) ?? 0.0;
+            _completedHours = int.tryParse((res['total_passed_hours'] ?? '0').toString()) ?? 0;
+            _totalRequiredHours = int.tryParse((res['total_credit_hours'] ?? '136').toString()) ?? 136;
+            _targetGpa = _currentGpa > 0 ? _currentGpa : 3.0;
+          });
+        }
+      }
+    } catch (e) {
+      // Keep defaults on error
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
+  }
 
   void _runSimulation() {
-    setState(() => _showResults = true);
+    final double currentTotalPoints = _currentGpa * _completedHours;
+    final int newTotalHours = _completedHours + _selectedHours;
+    
+    // Maximum possible GPA if student gets 4.0 this semester
+    final double maxPossibleGpa = (currentTotalPoints + (4.0 * _selectedHours)) / newTotalHours;
+    
+    if (_targetGpa > maxPossibleGpa) {
+      _targetSemesterGpa = 4.0;
+      _expectedCumulativeGpa = maxPossibleGpa;
+    } else {
+      _targetSemesterGpa = ((_targetGpa * newTotalHours) - currentTotalPoints) / _selectedHours;
+      if (_targetSemesterGpa < 1.0) _targetSemesterGpa = 1.0;
+      _expectedCumulativeGpa = _targetGpa;
+    }
+
+    final remainingHours = _totalRequiredHours - newTotalHours;
+    _remainingSemesters = remainingHours <= 0 ? 0 : (remainingHours / 15.0).ceil();
+
+    // Generate courses dynamically based on _selectedHours
+    final int courseCount = (_selectedHours / 3).round();
+    _simulatedCourses.clear();
+    
+    // Distribute targetSemesterGpa into grades
+    final gradesMap = [
+      {'letter': 'A', 'points': 4.0},
+      {'letter': 'A-', 'points': 3.75},
+      {'letter': 'B+', 'points': 3.5},
+      {'letter': 'B', 'points': 3.0},
+      {'letter': 'C+', 'points': 2.5},
+      {'letter': 'C', 'points': 2.0},
+      {'letter': 'D', 'points': 1.0},
+      {'letter': 'F', 'points': 0.0},
+    ];
+
+    // Find the closest grade for targetSemesterGpa
+    final closestGrade = gradesMap.firstWhere(
+      (g) => (g['points'] as double) <= _targetSemesterGpa,
+      orElse: () => gradesMap.last,
+    );
+
+    final subjects = [
+      {'code': 'CS401', 'name': 'نظم التشغيل'},
+      {'code': 'CS445', 'name': 'الذكاء الاصطناعي'},
+      {'code': 'CS480', 'name': 'أمن المعلومات'},
+      {'code': 'MATH301', 'name': 'الإحصاء التطبيقي'},
+      {'code': 'CS499', 'name': 'مشروع التخرج'},
+      {'code': 'CS330', 'name': 'قواعد البيانات ٢'},
+      {'code': 'CS412', 'name': 'هندسة البرمجيات ٢'},
+    ];
+
+    for (int i = 0; i < courseCount; i++) {
+      final subj = subjects[i % subjects.length];
+      _simulatedCourses.add({
+        'code': subj['code'],
+        'name': subj['name'],
+        'hours': 3,
+        'expectedGrade': closestGrade['letter'],
+      });
+    }
+
+    setState(() {
+      _showResults = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_errorMessage.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const SizedBox(height: 16),
+            Text(_errorMessage, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _loadStudentData, child: const Text('إعادة المحاولة')),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -109,7 +225,7 @@ class _PlanSimulationScreenState extends State<PlanSimulationScreen> {
                     ),
                     Slider(
                       value: _targetGpa,
-                      min: 1.0,
+                      min: _currentGpa > 0 ? _currentGpa : 1.0,
                       max: 4.0,
                       divisions: 30,
                       activeColor: AppColors.success500,
@@ -138,8 +254,8 @@ class _PlanSimulationScreenState extends State<PlanSimulationScreen> {
                 children: [
                   Expanded(
                     child: _buildResultCard(
-                      'المعدل المتوقع',
-                      '3.52',
+                      _targetSemesterGpa >= 4.0 ? 'أقصى معدل ممكن (مطلوب 4.00)' : 'مطلوب فصلي: ${_targetSemesterGpa.toStringAsFixed(2)}',
+                      _expectedCumulativeGpa.toStringAsFixed(2),
                       Icons.trending_up_rounded,
                       AppColors.success500,
                     ),
@@ -148,7 +264,7 @@ class _PlanSimulationScreenState extends State<PlanSimulationScreen> {
                   Expanded(
                     child: _buildResultCard(
                       'ساعات مكتملة',
-                      '${100 + _selectedHours}/136',
+                      '${_completedHours + _selectedHours}/$_totalRequiredHours',
                       Icons.school_rounded,
                       AppColors.primary500,
                     ),
@@ -156,8 +272,8 @@ class _PlanSimulationScreenState extends State<PlanSimulationScreen> {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _buildResultCard(
-                      'فصول متبقية',
-                      '2',
+                      'فصول متبقية للتخرج',
+                      '$_remainingSemesters',
                       Icons.calendar_today_rounded,
                       AppColors.warning500,
                     ),

@@ -1,4 +1,4 @@
-// file: lib/features/departments/screens/add_edit_department_dialog.dart
+// file: lib/features/departments/widgets/add_edit_department_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/curriculum_strings.dart';

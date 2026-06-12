@@ -88,6 +88,15 @@ class CourseService extends BaseService {
     }, context: 'CourseService.getById');
   }
 
+  /// Fetch a single course by code.
+  Future<CourseModel> getByCode(String code) async {
+    return safeCall(() async {
+      final data =
+          await client.from(_table).select().eq('code', code).single();
+      return CourseModel.fromJson(data);
+    }, context: 'CourseService.getByCode');
+  }
+
   /// Create a new course.
   Future<CourseModel> create(CourseModel model) async {
     return safeCall(() async {

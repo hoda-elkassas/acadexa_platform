@@ -19,6 +19,19 @@ import '../../features/study_plan/screens/import_curriculum_screen.dart';
 import '../../features/courses/screens/manage_courses_screen.dart';
 import '../../features/courses/screens/manage_prerequisites_screen.dart';
 import '../../features/courses/screens/elective_groups_screen.dart';
+import '../../features/courses/screens/course_detail_screen.dart';
+
+// Import profile screens
+import '../../features/profile/screens/profile_screen.dart';
+
+// Import error screens
+import '../../features/error_handling/screens/error_screen.dart';
+
+// Import system screens
+import '../../features/system/screens/system_settings_screen.dart';
+
+// Import student screens
+import '../../features/students/screens/student_details_screen.dart';
 
 // Import curriculum cubits
 import '../../features/study_plan/cubit/plan_structure_cubit.dart';
@@ -262,8 +275,10 @@ class AppRouter {
         );
 
       // ── Role dashboards ─────────────────────────────────────────────────
-      // All currently show DashboardScreen.
-      // Swap each case with a dedicated screen as you build them out.
+      // DashboardScreen acts as a controller: it fetches the user role,
+      // loads data from Supabase, and renders the appropriate role-specific
+      // presentation screen (AdminDashboardScreen / AdvisorDashboardScreen /
+      // StudentDashboardScreen).
       case AppRoutes.adminDashboard:
       case AppRoutes.advisorDashboard:
       case AppRoutes.dashboardViewer:
@@ -345,6 +360,59 @@ class AppRouter {
         final plan = settings.arguments as StudyPlanModel;
         return _slideRoute(
           ImportCurriculumScreen(plan: plan),
+          settings,
+        );
+
+      // ── Course Detail ─────────────────────────────────────────────────────
+      case AppRoutes.courseDetail:
+        final args = settings.arguments as CourseDetailArgs?;
+        return _slideRoute(
+          CourseDetailScreen(
+            courseId: args?.courseId ?? '',
+            courseName: args?.courseName,
+          ),
+          settings,
+        );
+
+      // ── Student Profile ──────────────────────────────────────────────────
+      case AppRoutes.studentProfile:
+        return _slideRoute(const ProfileScreen(), settings);
+
+      // ── Advisor Advisee Detail ───────────────────────────────────────────
+      case AppRoutes.adviseeDetail:
+        final args = settings.arguments as AdviseeDetailArgs?;
+        return _slideRoute(
+          StudentDetailsScreen(
+            studentSummary: {
+              'id': args?.adviseeId ?? '',
+              'full_name': args?.adviseeName ?? '',
+            },
+          ),
+          settings,
+        );
+
+      // ── Settings ─────────────────────────────────────────────────────────
+      case AppRoutes.settings:
+        return _slideRoute(const SystemSettingsScreen(), settings);
+
+      // ── Error Screen ─────────────────────────────────────────────────────
+      case AppRoutes.error:
+        return _fadeRoute(
+          const AcErrorScreen(
+            errorType: AppErrorType.unknown,
+            customTitle: 'حدث خطأ',
+            customMessage: 'نأسف، حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+          ),
+          settings,
+        );
+
+      // ── 404 Not Found ────────────────────────────────────────────────────
+      case AppRoutes.notFound:
+        return _fadeRoute(
+          const AcErrorScreen(
+            errorType: AppErrorType.notFound,
+            onGoHome: null,
+          ),
           settings,
         );
 

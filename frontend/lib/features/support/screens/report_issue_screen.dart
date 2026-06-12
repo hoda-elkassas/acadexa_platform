@@ -18,6 +18,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   final _descriptionController = TextEditingController();
   
   bool _isSending = false;
+  String _errorMessage = '';
   bool _hasAttachment = false;
 
   final List<String> _issueTypes = [
@@ -35,43 +36,41 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   }
 
   void _submitReport() async {
-    if (!_formKey.currentState!.validate() || _issueType == null) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_issueType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'الرجاء إدخال كافة الحقول الإلزامية اختيار نوع البلاغ',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(),
-          ),
-          backgroundColor: kError,
+          content: Text('يرجى اختيار نوع المشكلة', textAlign: TextAlign.right, style: GoogleFonts.cairo()),
+          backgroundColor: Colors.red,
         ),
       );
       return;
     }
-
-    setState(() {
-      _isSending = true;
-    });
-
-    // Simulated API Call
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        _isSending = false;
-      });
-
-      // Redirect to Success Screen
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => SuccessScreen(
-            title: 'تم إرسال بلاغك بنجاح!',
-            subtitle: 'شكراً لك على إبلاغنا. سيقوم الفريق الفني بمراجعة بلاغك والرد عليك في أقرب وقت ممكن.',
-            primaryButtonLabel: 'العودة للرئيسية',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+    setState(() { _isSending = true; _errorMessage = ''; });
+    try {
+      // Simulate API call - would insert into support_tickets table when it exists
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SuccessScreen(
+              title: 'تم إرسال البلاغ بنجاح!',
+              subtitle: 'شكراً لتواصلك معنا. سيقوم فريق الدعم بمراجعة البلاغ والتواصل معك في أقرب وقت.',
+              primaryButtonLabel: 'العودة للرئيسية',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isSending = false; _errorMessage = 'فشل إرسال البلاغ: ${e.toString()}'; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل إرسال البلاغ: ${e.toString()}', textAlign: TextAlign.right, style: GoogleFonts.cairo()), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

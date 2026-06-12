@@ -1,7 +1,7 @@
 class Environment {
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://buuisbquunicouyxkpbf.supabase.co',
+    defaultValue: 'http://localhost:8000/api/v1/db/supabase',
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(

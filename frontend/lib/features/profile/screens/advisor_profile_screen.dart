@@ -1,6 +1,7 @@
 // file: lib/features/profile/screens/advisor_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 
 class AdvisorProfileScreen extends StatefulWidget {
@@ -11,8 +12,60 @@ class AdvisorProfileScreen extends StatefulWidget {
 }
 
 class _AdvisorProfileScreenState extends State<AdvisorProfileScreen> {
+  final _supabase = Supabase.instance.client;
+  String _advisorName = '';
+  String _department = '';
+  String _email = '';
   String _officeLocation = 'مبنى الحاسبات - الدور الثالث - مكتب 302';
   String _officeHours = 'الأحد والثلاثاء: 10:00 ص - 01:00 م';
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) { setState(() { _isLoading = false; }); return; }
+
+      final res = await _supabase
+          .from('app_users')
+          .select('full_name, email, department_id')
+          .eq('id', user.id)
+          .single();
+
+      String deptName = '';
+      if (res['department_id'] != null) {
+        try {
+          final deptRes = await _supabase
+              .from('departments')
+              .select('name')
+              .eq('id', res['department_id'])
+              .single();
+          deptName = deptRes['name'] as String? ?? '';
+        } catch (_) {}
+      }
+
+      final meta = user.userMetadata;
+      if (mounted) {
+        setState(() {
+          _advisorName = res['full_name'] as String? ?? 'مرشد أكاديمي';
+          _department = deptName.isNotEmpty ? deptName : 'قسم غير محدد';
+          _email = res['email'] as String? ?? user.email ?? '';
+          _officeLocation = meta?['office_location'] as String? ?? 'مبنى الحاسبات - الدور الثالث - مكتب 302';
+          _officeHours = meta?['office_hours'] as String? ?? 'الأحد والثلاثاء: 10:00 ص - 01:00 م';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() { _errorMessage = 'فشل تحميل البيانات'; _isLoading = false; });
+    }
+  }
 
   void _editOfficeInfo() {
     final locationController = TextEditingController(text: _officeLocation);
@@ -64,22 +117,36 @@ class _AdvisorProfileScreenState extends State<AdvisorProfileScreen> {
             child: Text('إلغاء', style: GoogleFonts.cairo(color: kTextMedium)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final newLoc = locationController.text;
+              final newHours = hoursController.text;
               setState(() {
-                _officeLocation = locationController.text;
-                _officeHours = hoursController.text;
+                _officeLocation = newLoc;
+                _officeHours = newHours;
               });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'تم تحديث البيانات بنجاح',
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.cairo(),
+              try {
+                await _supabase.auth.updateUser(
+                  UserAttributes(
+                    data: {
+                      'office_location': newLoc,
+                      'office_hours': newHours,
+                    },
                   ),
-                  backgroundColor: kSuccess,
-                ),
-              );
+                );
+              } catch (_) {}
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'تم تحديث البيانات بنجاح',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.cairo(),
+                    ),
+                    backgroundColor: kSuccess,
+                  ),
+                );
+              }
             },
             child: Text(
               'حفظ',
@@ -108,7 +175,35 @@ class _AdvisorProfileScreenState extends State<AdvisorProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage.isNotEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _errorMessage,
+                          style: GoogleFonts.cairo(color: kError),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryBlue,
+                            foregroundColor: kWhite,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
         child: Column(
           children: [
             // Header Card
@@ -129,12 +224,12 @@ class _AdvisorProfileScreenState extends State<AdvisorProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'د. خالد بن عبد الرحمن السليمان',
+                    _advisorName,
                     style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18, color: kWhite),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'قسم علوم الحاسب ومعلومات الشبكات',
+                    _department,
                     style: GoogleFonts.cairo(fontSize: 12, color: kWhite.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: 4),
@@ -218,7 +313,7 @@ class _AdvisorProfileScreenState extends State<AdvisorProfileScreen> {
                         _buildInfoRow(
                           icon: Icons.mail_outline_rounded,
                           title: 'البريد الإلكتروني الجامعي',
-                          value: 'k.sulaiman@acadexa.edu.eg',
+                          value: _email,
                         ),
                       ],
                     ),

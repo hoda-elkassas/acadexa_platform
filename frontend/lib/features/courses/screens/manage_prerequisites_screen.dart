@@ -10,7 +10,7 @@ import '../../../shared/widgets/widgets.dart';
 import '../../../data/models/prerequisite_model.dart';
 import '../../../data/models/study_plan_model.dart';
 import '../cubit/prerequisites_cubit.dart';
-import 'add_prerequisite_dialog.dart';
+import '../widgets/add_prerequisite_dialog.dart';
 
 class ManagePrerequisitesScreen extends StatefulWidget {
   const ManagePrerequisitesScreen({super.key, required this.plan});

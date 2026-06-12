@@ -1,6 +1,7 @@
 // file: lib/features/faq/screens/faq_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../support/screens/report_issue_screen.dart';
 
@@ -15,10 +16,11 @@ class _FaqScreenState extends State<FaqScreen> {
   final _searchController = TextEditingController();
   String _selectedCategory = 'الكل';
   String _searchQuery = '';
+  bool _isLoading = false;
 
   final List<String> _categories = ['الكل', 'عام', 'الحساب', 'الأكاديميات', 'المساعدة'];
 
-  final List<Map<String, String>> _faqItems = [
+  List<Map<String, String>> _faqItems = [
     {
       'question': 'ما هي منصة أكاديكسا وكيف تساعدني؟',
       'answer': 'أكاديكسا هي منصة إرشاد أكاديمي ذكية تساعد الطلاب على تنظيم خططهم الدراسية ومتابعة تقدمهم، ومعرفة متطلبات التخرج وحساب المعدل التراكمي وتنبيههم للمواد المتبقية والمتطلبات السابقة.',
@@ -57,6 +59,37 @@ class _FaqScreenState extends State<FaqScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadFaqs();
+  }
+
+  Future<void> _loadFaqs() async {
+    setState(() { _isLoading = true; });
+    try {
+      final client = Supabase.instance.client;
+      final res = await client.from('faqs').select('question, answer, category');
+      if (res != null && (res as List).isNotEmpty) {
+        final dbList = (res as List).map((item) {
+          final m = item as Map<String, dynamic>;
+          return {
+            'question': m['question']?.toString() ?? '',
+            'answer': m['answer']?.toString() ?? '',
+            'category': m['category']?.toString() ?? 'عام',
+          };
+        }).toList();
+        setState(() {
+          _faqItems = dbList;
+        });
+      }
+    } catch (_) {
+      // Keep static defaults on database omission or missing table
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -81,6 +114,23 @@ class _FaqScreenState extends State<FaqScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredList = _filteredFaqs;
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: kScaffoldBg,
+        appBar: AppBar(
+          backgroundColor: kDarkNavy,
+          foregroundColor: kWhite,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'الأسئلة الشائعة FAQ',
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: kPrimaryTeal)),
+      );
+    }
 
     return Scaffold(
       backgroundColor: kScaffoldBg,

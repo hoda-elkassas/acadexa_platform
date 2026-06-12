@@ -226,7 +226,7 @@ class _AdvisorDashboardScreenState extends State<AdvisorDashboardScreen> {
       advisees: widget.advisees,
     ),
     4 => const _SettingsTab(),
-    _ => const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
+    _ => const SizedBox.shrink(),
   };
 }
 
@@ -847,7 +847,7 @@ class _ReportsTab extends StatelessWidget {
                 flex: 2,
                 child: Column(
                   children: [
-                    AcCard(
+                    AcSectionCard(
                       title: 'إحصائيات الأداء العام للطلاب',
                       child: Column(
                         children: [
@@ -858,7 +858,7 @@ class _ReportsTab extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    AcCard(
+                    AcSectionCard(
                       title: 'التقارير المتاحة للتصدير',
                       child: Column(
                         children: [
@@ -882,7 +882,7 @@ class _ReportsTab extends StatelessWidget {
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 flex: 1,
-                child: AcCard(
+                child: AcSectionCard(
                   title: 'مستويات الخطورة',
                   child: SizedBox(
                     height: 280,
@@ -995,7 +995,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSpacing.md),
-          AcCard(
+          AcSectionCard(
             title: 'إعدادات أوقات الجلسات الاستشارية',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1010,7 +1010,7 @@ class _SettingsTabState extends State<_SettingsTab> {
                       onChanged: (val) => setState(() => _selectedChannel = val!),
                       activeColor: AppColors.primary500,
                     ),
-                    const Text('حضوري في مكتب المرشد', style: AppTypography.bodyMedium),
+                    Text('حضوري في مكتب المرشد', style: AppTypography.bodyMedium),
                     const SizedBox(width: AppSpacing.lg),
                     Radio<String>(
                       value: 'teams',
@@ -1018,7 +1018,7 @@ class _SettingsTabState extends State<_SettingsTab> {
                       onChanged: (val) => setState(() => _selectedChannel = val!),
                       activeColor: AppColors.primary500,
                     ),
-                    const Text('عن بعد عبر MS Teams', style: AppTypography.bodyMedium),
+                    Text('عن بعد عبر MS Teams', style: AppTypography.bodyMedium),
                   ],
                 ),
                 const Divider(height: AppSpacing.lg),
@@ -1036,21 +1036,21 @@ class _SettingsTabState extends State<_SettingsTab> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          AcCard(
+          AcSectionCard(
             title: 'تفضيلات التنبيهات والإشعارات',
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('إشعارات البريد الإلكتروني', style: AppTypography.labelLarge),
-                  subtitle: const Text('إرسال تنبيه فوري عند تقديم طالب لطلب إرشاد جديد', style: AppTypography.bodySmall),
+                  title: Text('إشعارات البريد الإلكتروني', style: AppTypography.labelLarge),
+                  subtitle: Text('إرسال تنبيه فوري عند تقديم طالب لطلب إرشاد جديد', style: AppTypography.bodySmall),
                   value: _emailNotifs,
                   onChanged: (val) => setState(() => _emailNotifs = val),
                   activeColor: AppColors.primary500,
                 ),
                 const Divider(),
                 SwitchListTile(
-                  title: const Text('إشعارات النظام الفورية', style: AppTypography.labelLarge),
-                  subtitle: const Text('إظهار إشعارات منبثقة عند تحديث بيانات طالب متعثر', style: AppTypography.bodySmall),
+                  title: Text('إشعارات النظام الفورية', style: AppTypography.labelLarge),
+                  subtitle: Text('إظهار إشعارات منبثقة عند تحديث بيانات طالب متعثر', style: AppTypography.bodySmall),
                   value: _pushNotifs,
                   onChanged: (val) => setState(() => _pushNotifs = val),
                   activeColor: AppColors.primary500,

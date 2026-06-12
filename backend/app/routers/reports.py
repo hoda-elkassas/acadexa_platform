@@ -73,7 +73,7 @@ async def get_student_transcript(
 @router.get("/department/{department_id}/summary")
 async def get_department_summary(
     department_id: str,
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -95,7 +95,7 @@ async def get_department_summary(
 @router.get("/department/{department_id}/at-risk")
 async def get_at_risk_report(
     department_id: str,
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     limit: int = Query(50, ge=1, le=500),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -119,7 +119,7 @@ async def get_at_risk_report(
 async def get_graduation_predictions(
     department_id: str,
     year: int = Query(...),
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -141,7 +141,7 @@ async def get_graduation_predictions(
 @router.get("/student/{student_id}/semester-performance")
 async def get_semester_performance(
     student_id: str,
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -166,7 +166,7 @@ async def get_semester_performance(
 async def get_plan_comparison(
     plan_id_1: str = Query(...),
     plan_id_2: str = Query(...),
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -188,7 +188,7 @@ async def get_plan_comparison(
 @router.get("/student/{student_id}/plan-compliance")
 async def get_plan_compliance(
     student_id: str,
-    file_format: str = Query("pdf", regex="^(pdf|excel)$"),
+    file_format: str = Query("pdf", pattern="^(pdf|excel)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """

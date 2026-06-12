@@ -54,27 +54,39 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
       final studentId = widget.studentSummary['id'];
 
       // 1. Fetch semesters/grades
-      final semRes = await _supabase
-          .from('student_semesters')
-          .select()
-          .eq('student_id', studentId)
-          .order('semester_number', ascending: true);
-      _semesters = List<Map<String, dynamic>>.from(semRes as List);
+      try {
+        final semRes = await _supabase
+            .from('student_semesters')
+            .select()
+            .eq('student_id', studentId)
+            .order('semester_number', ascending: true);
+        _semesters = List<Map<String, dynamic>>.from(semRes as List);
+      } catch (_) {
+        _semesters = [];
+      }
 
       // 2. Fetch compliance/courses remaining
-      final compRes = await _supabase
-          .from('student_courses')
-          .select()
-          .eq('student_id', studentId);
-      _complianceCourses = List<Map<String, dynamic>>.from(compRes as List);
+      try {
+        final compRes = await _supabase
+            .from('student_courses')
+            .select()
+            .eq('student_id', studentId);
+        _complianceCourses = List<Map<String, dynamic>>.from(compRes as List);
+      } catch (_) {
+        _complianceCourses = [];
+      }
 
       // 3. Fetch advisor notes
-      final notesRes = await _supabase
-          .from('advisor_notes')
-          .select()
-          .eq('student_id', studentId)
-          .order('created_at', ascending: false);
-      _advisorNotes = List<Map<String, dynamic>>.from(notesRes as List);
+      try {
+        final notesRes = await _supabase
+            .from('advisor_notes')
+            .select()
+            .eq('student_id', studentId)
+            .order('created_at', ascending: false);
+        _advisorNotes = List<Map<String, dynamic>>.from(notesRes as List);
+      } catch (_) {
+        _advisorNotes = [];
+      }
 
       setState(() {
         _isLoading = false;
@@ -104,6 +116,17 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
         'created_at': DateTime.now().toIso8601String(),
       });
 
+      // reload notes
+      final notesRes = await _supabase
+          .from('advisor_notes')
+          .select()
+          .eq('student_id', studentId)
+          .order('created_at', ascending: false);
+      
+      setState(() {
+        _advisorNotes = List<Map<String, dynamic>>.from(notesRes as List);
+      });
+
       if (!mounted) return;
       _noteController.clear();
       AcSnackbar.show(
@@ -125,13 +148,15 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
   @override
   Widget build(BuildContext context) {
     final s = widget.studentSummary;
+    final displayName = s['name'] ?? s['full_name'] ?? '-';
+    final displayCode = s['student_code'] ?? s['email'] ?? '-';
     final gpaVal = s['calculated_gpa'] ?? s['cumulative_gpa'];
     final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
     final isAtRisk = gpa < 2.0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('الملف الأكاديمي: ${s['full_name']}'),
+        title: Text('الملف الأكاديمي: $displayName'),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
@@ -166,7 +191,9 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
                                 radius: 40,
                                 backgroundColor: AppColors.primary500.withValues(alpha: 0.1),
                                 child: Text(
-                                  (s['full_name']?.toString() ?? 'U').substring(0, 1).toUpperCase(),
+                                  (displayName.toString()).isNotEmpty
+                                      ? displayName.toString().substring(0, 1).toUpperCase()
+                                      : 'U',
                                   style: AppTypography.h3.copyWith(
                                     color: AppColors.primary600,
                                     fontWeight: FontWeight.bold,
@@ -181,7 +208,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
                                     Row(
                                       children: [
                                         Text(
-                                          s['full_name']?.toString() ?? '-',
+                                          displayName.toString(),
                                           style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.bold),
                                         ),
                                         const SizedBox(width: AppSpacing.md),
@@ -205,7 +232,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> with Single
                                     ),
                                     const SizedBox(height: AppSpacing.xs),
                                     Text(
-                                      s['email']?.toString() ?? '-',
+                                      displayCode.toString(),
                                       style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
                                     ),
                                     const SizedBox(height: AppSpacing.xs),

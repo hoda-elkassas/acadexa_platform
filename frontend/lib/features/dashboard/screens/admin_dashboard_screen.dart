@@ -247,7 +247,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
     3 => const ReportsDashboardScreen(),
     4 => const SystemSettingsScreen(),
-    _ => const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
+    _ => const SizedBox.shrink(),
   };
 }
 

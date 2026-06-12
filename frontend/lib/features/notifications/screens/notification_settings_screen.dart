@@ -1,6 +1,7 @@
 // file: lib/features/notifications/screens/notification_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -11,6 +12,8 @@ class NotificationSettingsScreen extends StatefulWidget {
 }
 
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+  final _supabase = Supabase.instance.client;
+
   bool _academicAlerts = true;
   bool _curriculumUpdates = true;
   bool _advisorMessages = true;
@@ -21,39 +24,130 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool _pushChannel = false;
 
   bool _isSaving = false;
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        final meta = user.userMetadata;
+        if (meta != null) {
+          setState(() {
+            _academicAlerts = meta['notif_academic'] as bool? ?? true;
+            _curriculumUpdates = meta['notif_curriculum'] as bool? ?? true;
+            _advisorMessages = meta['notif_advisor'] as bool? ?? true;
+            _generalAnnouncements = meta['notif_general'] as bool? ?? false;
+            _inAppChannel = meta['channel_inapp'] as bool? ?? true;
+            _emailChannel = meta['channel_email'] as bool? ?? true;
+            _pushChannel = meta['channel_push'] as bool? ?? false;
+          });
+        }
+      }
+    } catch (e) {
+      // Keep defaults on error
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
+  }
 
   void _saveSettings() async {
-    setState(() {
-      _isSaving = true;
-    });
-
-    // Simulated API call
-    await Future.delayed(const Duration(seconds: 1500));
-
-    if (mounted) {
-      setState(() {
-        _isSaving = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم حفظ إعدادات الإشعارات بنجاح',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: kSuccess,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+    setState(() { _isSaving = true; _errorMessage = ''; });
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(
+          data: {
+            'notif_academic': _academicAlerts,
+            'notif_curriculum': _curriculumUpdates,
+            'notif_advisor': _advisorMessages,
+            'notif_general': _generalAnnouncements,
+            'channel_inapp': _inAppChannel,
+            'channel_email': _emailChannel,
+            'channel_push': _pushChannel,
+          },
         ),
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('تم حفظ إعدادات الإشعارات بنجاح', textAlign: TextAlign.right),
+            backgroundColor: kSuccess,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل حفظ الإعدادات: ${e.toString()}', textAlign: TextAlign.right),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() { _isSaving = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: kScaffoldBg,
+        appBar: AppBar(
+          backgroundColor: kDarkNavy,
+          foregroundColor: kWhite,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'إعدادات الإشعارات',
+            style: GoogleFonts.cairo(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage.isNotEmpty) {
+      return Scaffold(
+        backgroundColor: kScaffoldBg,
+        appBar: AppBar(
+          backgroundColor: kDarkNavy,
+          foregroundColor: kWhite,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'إعدادات الإشعارات',
+            style: GoogleFonts.cairo(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            _errorMessage,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.cairo(color: kError),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: kScaffoldBg,
       appBar: AppBar(

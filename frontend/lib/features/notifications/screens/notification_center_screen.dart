@@ -1,7 +1,9 @@
 // file: lib/features/notifications/screens/notification_center_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../shared/widgets/states/ac_states.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -11,53 +13,15 @@ class NotificationCenterScreen extends StatefulWidget {
 }
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
+  final _supabase = Supabase.instance.client;
+
   String _selectedTab = 'الكل';
   bool _isLoading = true;
+  String _errorMessage = '';
 
   final List<String> _tabs = ['الكل', 'غير مقروء', 'أكاديمي'];
 
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': '1',
-      'title': 'إنذار أكاديمي: ساعات الغياب',
-      'description': 'لقد تجاوزت نسبة الغياب المسموح بها في مادة "هندسة البرمجيات" (12%). يرجى مراجعة أستاذ المادة.',
-      'time': 'منذ ساعتين',
-      'type': 'academic',
-      'isRead': false,
-    },
-    {
-      'id': '2',
-      'title': 'تحديث في لائحة 2026',
-      'description': 'تم تعديل المتطلب السابق لمادة "الذكاء الاصطناعي" ليصبح "تراكيب البيانات" بدلاً من "مقدمة في البرمجة".',
-      'time': 'منذ يومين',
-      'type': 'curriculum',
-      'isRead': false,
-    },
-    {
-      'id': '3',
-      'title': 'رسالة جديدة من المرشد الأكاديمي',
-      'description': 'مرحباً، يرجى حضور جلسة الإرشاد الأكاديمي لمراجعة خطتك المقترحة للفصل الدراسي القادم غداً الساعة 10 صباحاً.',
-      'time': 'منذ 3 أيام',
-      'type': 'advisor',
-      'isRead': true,
-    },
-    {
-      'id': '4',
-      'title': 'إعلان: بدء فترة التسجيل المبكر',
-      'description': 'تبدأ فترة تسجيل المواد للفصل الدراسي الصيفي اعتباراً من الأحد القادم عبر البوابة الأكاديمية.',
-      'time': 'منذ 5 أيام',
-      'type': 'general',
-      'isRead': true,
-    },
-    {
-      'id': '5',
-      'title': 'تنبيه: تدني المعدل التراكمي',
-      'description': 'تنبيه أكاديمي: انخفض معدلك التراكمي عن 2.0. يرجى التواصل مع مرشدك الأكاديمي لضبط عبئك الدراسي.',
-      'time': 'منذ أسبوع',
-      'type': 'academic',
-      'isRead': true,
-    },
-  ];
+  List<Map<String, dynamic>> _notifications = [];
 
   @override
   void initState() {
@@ -65,38 +29,96 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     _loadNotifications();
   }
 
-  void _loadNotifications() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+  Future<void> _loadNotifications() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) { setState(() { _isLoading = false; }); return; }
+      final res = await _supabase
+          .from('notification_history')
+          .select()
+          .eq('student_id', user.id)
+          .order('created_at', ascending: false);
+      if (mounted) {
+        final rawList = res as List<dynamic>;
+        final mappedList = rawList.map((item) {
+          final dbItem = item as Map<String, dynamic>;
+          String timeStr = '';
+          if (dbItem['created_at'] != null) {
+            timeStr = dbItem['created_at'].toString().split('T')[0];
+          } else if (dbItem['sent_at'] != null) {
+            timeStr = dbItem['sent_at'].toString().split('T')[0];
+          }
+          return {
+            'id': dbItem['id']?.toString() ?? '',
+            'title': dbItem['title']?.toString() ?? 'إشعار جديد',
+            'description': dbItem['body']?.toString() ?? dbItem['description']?.toString() ?? '',
+            'isRead': dbItem['read'] == true || dbItem['is_read'] == true,
+            'time': timeStr,
+            'type': dbItem['type']?.toString() ?? dbItem['notification_type']?.toString() ?? 'system',
+          };
+        }).toList();
+
+        setState(() {
+          _notifications = mappedList;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _errorMessage = 'فشل تحميل الإشعارات: ${e.toString()}'; _isLoading = false; });
+      }
     }
   }
 
-  void _markAllAsRead() {
+  Future<void> _markAllAsRead() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
     setState(() {
       for (var n in _notifications) {
         n['isRead'] = true;
       }
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'تم تحديد الكل كمقروء',
-          textAlign: TextAlign.right,
-          style: GoogleFonts.cairo(),
+    try {
+      try {
+        await _supabase
+            .from('notification_history')
+            .update({'read': true})
+            .eq('student_id', user.id);
+      } catch (_) {
+        await _supabase
+            .from('notification_history')
+            .update({'is_read': true})
+            .eq('student_id', user.id);
+      }
+    } catch (_) {}
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تم تحديد الكل كمقروء',
+            textAlign: TextAlign.right,
+            style: GoogleFonts.cairo(),
+          ),
+          backgroundColor: kSuccess,
         ),
-        backgroundColor: kSuccess,
-      ),
-    );
+      );
+    }
   }
 
-  void _deleteNotification(String id) {
+  Future<void> _deleteNotification(String id) async {
     setState(() {
       _notifications.removeWhere((n) => n['id'] == id);
     });
+    try {
+      await _supabase
+          .from('notification_history')
+          .delete()
+          .eq('id', id);
+    } catch (_) {}
   }
 
   List<Map<String, dynamic>> get _filteredNotifications {
@@ -137,6 +159,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final list = _filteredNotifications;
+
+    if (_errorMessage.isNotEmpty) return AcErrorState(title: 'خطأ', message: _errorMessage, onRetry: _loadNotifications);
 
     return Scaffold(
       backgroundColor: kScaffoldBg,
@@ -219,10 +243,25 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               child: const Icon(Icons.delete_outline, color: kError, size: 28),
                             ),
                             child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  item['isRead'] = true;
-                                });
+                              onTap: () async {
+                                if (!item['isRead']) {
+                                  setState(() {
+                                    item['isRead'] = true;
+                                  });
+                                  try {
+                                    try {
+                                      await _supabase
+                                          .from('notification_history')
+                                          .update({'read': true})
+                                          .eq('id', item['id']);
+                                    } catch (_) {
+                                      await _supabase
+                                          .from('notification_history')
+                                          .update({'is_read': true})
+                                          .eq('id', item['id']);
+                                    }
+                                  } catch (_) {}
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

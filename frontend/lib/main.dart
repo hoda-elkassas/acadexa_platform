@@ -15,7 +15,7 @@ void main() async {
   await Supabase.initialize(
     url: const String.fromEnvironment(
       'SUPABASE_URL',
-      defaultValue: 'https://buuisbquunicouyxkpbf.supabase.co',
+      defaultValue: 'http://localhost:8000/api/v1/db/supabase',
     ),
     publishableKey: const String.fromEnvironment(
       'SUPABASE_ANON_KEY',

@@ -10,8 +10,8 @@ import '../../../shared/widgets/widgets.dart';
 import '../../../data/models/course_model.dart';
 import '../../../data/models/study_plan_model.dart';
 import '../cubit/courses_cubit.dart';
-import 'add_edit_course_dialog.dart';
-import 'course_details_drawer.dart';
+import '../widgets/add_edit_course_dialog.dart';
+import '../widgets/course_details_drawer.dart';
 
 class ManageCoursesScreen extends StatefulWidget {
   const ManageCoursesScreen({super.key, required this.plan});

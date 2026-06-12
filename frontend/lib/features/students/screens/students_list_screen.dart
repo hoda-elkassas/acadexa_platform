@@ -77,11 +77,10 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
     
     if (_searchQuery.isNotEmpty) {
       list = list.where((s) {
-        final name = s['full_name']?.toString().toLowerCase() ?? '';
-        final email = s['email']?.toString().toLowerCase() ?? '';
-        final id = s['id']?.toString().toLowerCase() ?? '';
+        final name = (s['name'] ?? s['full_name'])?.toString().toLowerCase() ?? '';
+        final code = (s['student_code'] ?? s['email'] ?? s['id'])?.toString().toLowerCase() ?? '';
         final q = _searchQuery.toLowerCase();
-        return name.contains(q) || email.contains(q) || id.contains(q);
+        return name.contains(q) || code.contains(q);
       }).toList();
     }
 
@@ -200,36 +199,42 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
                         AcTableColumn(
                           key: 'name',
                           label: 'الطالب',
-                          cellBuilder: (s, _) => Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: AppColors.primary500.withValues(alpha: 0.1),
-                                child: Text(
-                                  (s['full_name']?.toString() ?? 'U').substring(0, 1).toUpperCase(),
-                                  style: AppTypography.labelLarge.copyWith(
-                                    color: AppColors.primary600,
-                                    fontWeight: FontWeight.bold,
+                          cellBuilder: (s, _) {
+                            final displayName = s['name'] ?? s['full_name'] ?? '-';
+                            final displayCode = s['student_code'] ?? s['email'] ?? '-';
+                            return Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: AppColors.primary500.withValues(alpha: 0.1),
+                                  child: Text(
+                                    (displayName.toString()).isNotEmpty
+                                        ? displayName.toString().substring(0, 1).toUpperCase()
+                                        : 'U',
+                                    style: AppTypography.labelLarge.copyWith(
+                                      color: AppColors.primary600,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    s['full_name']?.toString() ?? '-',
-                                    style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    s['email']?.toString() ?? '-',
-                                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      displayName.toString(),
+                                      style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      displayCode.toString(),
+                                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
                           flex: 3,
                         ),
                         AcTableColumn(
@@ -283,19 +288,23 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
                         AcTableColumn(
                           key: 'actions',
                           label: 'الإجراءات',
-                          cellBuilder: (s, _) => AcButton(
-                            label: 'عرض السجل',
-                            variant: AcButtonVariant.secondary,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => StudentDetailsScreen(studentSummary: s),
-                                ),
-                              );
-                            },
+                          cellBuilder: (s, _) => SizedBox(
+                            height: 32,
+                            child: AcButton(
+                              label: 'عرض السجل',
+                              variant: AcButtonVariant.secondary,
+                              size: AcButtonSize.small,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => StudentDetailsScreen(studentSummary: s),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                          width: 130,
+                          width: 110,
                         ),
                       ],
                       rows: _filteredStudents,

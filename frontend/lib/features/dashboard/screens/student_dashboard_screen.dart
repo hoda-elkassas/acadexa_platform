@@ -14,6 +14,7 @@ import '../../../shared/widgets/navigation/ac_navigation.dart';
 import '../../transcript/screens/plan_compliance_screen.dart';
 import '../../transcript/screens/graduation_tracking_screen.dart';
 import '../../expert_system/screens/smart_assistant_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 // ─── Data contracts ───────────────────────────────────────────────────────
 class StudentProfileData {
@@ -214,13 +215,14 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             isLoadingCourses: widget.isLoadingCourses,
             isLoadingTrend: widget.isLoadingTrend,
             onCourseRegister: widget.onCourseRegister,
+            onCourseDetail: widget.onCourseDetail,
             onRequestAdvisor: widget.onRequestAdvisor,
           ),
         1 => const PlanComplianceScreen(),
         2 => const GraduationTrackingScreen(),
         3 => const SmartAssistantScreen(),
-        _ =>
-          const Center(child: Text('قريباً', textDirection: TextDirection.rtl)),
+        4 => const ProfileScreen(),
+        _ => const SizedBox.shrink(),
       };
 }
 
@@ -237,6 +239,7 @@ class _HomeTab extends StatelessWidget {
     required this.isLoadingCourses,
     required this.isLoadingTrend,
     this.onCourseRegister,
+    this.onCourseDetail,
     this.onRequestAdvisor,
   });
 
@@ -250,6 +253,7 @@ class _HomeTab extends StatelessWidget {
   final bool isLoadingCourses;
   final bool isLoadingTrend;
   final void Function(RecommendedCourseData)? onCourseRegister;
+  final void Function(CurrentCourseData)? onCourseDetail;
   final VoidCallback? onRequestAdvisor;
 
   @override
@@ -322,6 +326,7 @@ class _HomeTab extends StatelessWidget {
           _CurrentCoursesSection(
             courses: currentCourses,
             isLoading: isLoadingCourses,
+            onCourseDetail: onCourseDetail,
           ),
           const SizedBox(height: AppSpacing.lg),
 
@@ -765,10 +770,12 @@ class _CurrentCoursesSection extends StatelessWidget {
   const _CurrentCoursesSection({
     required this.courses,
     required this.isLoading,
+    this.onCourseDetail,
   });
 
   final List<CurrentCourseData> courses;
   final bool isLoading;
+  final void Function(CurrentCourseData)? onCourseDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -787,7 +794,10 @@ class _CurrentCoursesSection extends StatelessWidget {
                       .map(
                         (c) => Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: _CurrentCourseRow(course: c),
+                          child: _CurrentCourseRow(
+                            course: c,
+                            onTap: onCourseDetail != null ? () => onCourseDetail!(c) : null,
+                          ),
                         ),
                       )
                       .toList(),
@@ -797,9 +807,10 @@ class _CurrentCoursesSection extends StatelessWidget {
 }
 
 class _CurrentCourseRow extends StatelessWidget {
-  const _CurrentCourseRow({required this.course});
+  const _CurrentCourseRow({required this.course, this.onTap});
 
   final CurrentCourseData course;
+  final VoidCallback? onTap;
 
   Color _gradeColor(String grade) {
     if (['A+', 'A', 'A-'].contains(grade)) return AppColors.success600;
@@ -810,54 +821,65 @@ class _CurrentCourseRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                course.courseName,
-                style: AppTypography.labelMedium,
-                textDirection: TextDirection.rtl,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppSpacing.xxs),
-              Row(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.brSm,
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(course.courseCode, style: AppTypography.caption),
-                  const SizedBox(width: AppSpacing.xs),
                   Text(
-                    course.instructor,
-                    style: AppTypography.caption,
+                    course.courseName,
+                    style: AppTypography.labelMedium,
                     textDirection: TextDirection.rtl,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Row(
+                    children: [
+                      Text(course.courseCode, style: AppTypography.caption),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        course.instructor,
+                        style: AppTypography.caption,
+                        textDirection: TextDirection.rtl,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  AcProgressChart(
+                    label: 'الحضور',
+                    value: course.attendancePercent,
+                    displayValue: '${(course.attendancePercent * 100).round()}%',
+                    height: 4,
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              AcProgressChart(
-                label: 'الحضور',
-                value: course.attendancePercent,
-                displayValue: '${(course.attendancePercent * 100).round()}%',
-                height: 4,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Column(
-          children: [
-            Text(
-              course.currentGrade,
-              style: AppTypography.h3.copyWith(
-                color: _gradeColor(course.currentGrade),
-              ),
             ),
-            Text('الدرجة', style: AppTypography.caption),
+            const SizedBox(width: AppSpacing.md),
+            Column(
+              children: [
+                Text(
+                  course.currentGrade,
+                  style: AppTypography.h3.copyWith(
+                    color: _gradeColor(course.currentGrade),
+                  ),
+                ),
+                Text('الدرجة', style: AppTypography.caption),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 }

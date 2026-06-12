@@ -8,3 +8,4 @@ from . import reports
 from . import curriculum
 from . import notifications
 from . import students
+from . import db

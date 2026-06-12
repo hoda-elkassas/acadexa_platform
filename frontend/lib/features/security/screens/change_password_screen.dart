@@ -1,6 +1,7 @@
 // file: lib/features/security/screens/change_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -22,6 +23,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureConfirm = true;
 
   bool _isUpdating = false;
+  String _errorMessage = '';
+  final _supabase = Supabase.instance.client;
 
   @override
   void dispose() {
@@ -57,47 +60,32 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return 'قوية جداً';
   }
 
-  void _updatePassword() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_currentPasswordController.text == '123456') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'كلمة المرور الحالية غير صحيحة',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(),
-          ),
-          backgroundColor: kError,
-        ),
+  Future<void> _updatePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() { _isUpdating = true; _errorMessage = ''; });
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: _newPasswordController.text),
       );
-      return;
-    }
-
-    setState(() {
-      _isUpdating = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 1500));
-
-    if (mounted) {
-      setState(() {
-        _isUpdating = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم تغيير كلمة المرور بنجاح',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(),
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم تغيير كلمة المرور بنجاح', textAlign: TextAlign.right, style: GoogleFonts.cairo()),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: kSuccess,
-        ),
-      );
-      Navigator.of(context).pop();
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isUpdating = false; _errorMessage = 'فشل تغيير كلمة المرور: ${e.toString()}'; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل تغيير كلمة المرور: ${e.toString()}', textAlign: TextAlign.right, style: GoogleFonts.cairo()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

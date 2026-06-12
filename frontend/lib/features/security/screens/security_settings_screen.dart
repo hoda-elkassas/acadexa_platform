@@ -1,6 +1,7 @@
 // file: lib/features/security/screens/security_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 import 'change_password_screen.dart';
 import 'two_factor_screen.dart';
@@ -14,59 +15,26 @@ class SecuritySettingsScreen extends StatefulWidget {
 
 class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   bool _twoFactorEnabled = false;
+  bool _isLoading = true;
+  String _errorMessage = '';
+  final _supabase = Supabase.instance.client;
 
-  // Mock Connected Devices
-  final List<Map<String, String>> _devices = [
-    {
-      'id': '1',
-      'name': 'MacBook Pro 16"',
-      'os': 'macOS Sequoia',
-      'lastActive': 'نشط الآن (الجهاز الحالي)',
-      'isCurrent': 'true',
-    },
-    {
-      'id': '2',
-      'name': 'iPhone 15 Pro Max',
-      'os': 'iOS 17.5',
-      'lastActive': 'منذ ساعتين',
-      'isCurrent': 'false',
-    },
-    {
-      'id': '3',
-      'name': 'Samsung Galaxy S24 Ultra',
-      'os': 'Android 14',
-      'lastActive': 'منذ يومين',
-      'isCurrent': 'false',
-    },
-  ];
+  // Connected Devices
+  final List<Map<String, String>> _devices = [];
 
-  // Mock Security Log Events
-  final List<Map<String, String>> _securityLogs = [
-    {
-      'event': 'تسجيل دخول ناجح',
-      'device': 'MacBook Pro - Chrome',
-      'time': 'اليوم، 10:24 ص',
-      'status': 'success',
-    },
-    {
-      'event': 'تغيير كلمة المرور',
-      'device': 'من خلال المتصفح',
-      'time': 'أمس، 04:15 م',
-      'status': 'warning',
-    },
-    {
-      'event': 'محاولة تسجيل دخول فاشلة',
-      'device': 'IP: 192.168.1.45',
-      'time': '3 يونيو 2026، 11:02 ص',
-      'status': 'error',
-    },
-    {
-      'event': 'تفعيل المصادقة الثنائية',
-      'device': 'من خلال التطبيق',
-      'time': '1 يونيو 2026، 09:30 ص',
-      'status': 'success',
-    },
-  ];
+  // Security Log Events
+  final List<Map<String, String>> _securityLogs = [];
+
+
+  Future<void> _deleteDeviceFromDb(String id) async {
+    if (id == 'current') return;
+    try {
+      await _supabase
+          .from('student_devices')
+          .delete()
+          .eq('id', id);
+    } catch (_) {}
+  }
 
   void _logoutDevice(int index) {
     final device = _devices[index];
@@ -90,21 +58,27 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             child: Text('إلغاء', style: GoogleFonts.cairo(color: kTextMedium)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final deviceId = device['id'];
               setState(() {
                 _devices.removeAt(index);
               });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'تم تسجيل الخروج من الجهاز بنجاح',
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.cairo(),
+              if (deviceId != null && deviceId != 'current') {
+                await _deleteDeviceFromDb(deviceId);
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'تم تسجيل الخروج من الجهاز بنجاح',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.cairo(),
+                    ),
+                    backgroundColor: kSuccess,
                   ),
-                  backgroundColor: kSuccess,
-                ),
-              );
+                );
+              }
             },
             child: Text(
               'تسجيل خروج',
@@ -137,21 +111,32 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             child: Text('إلغاء', style: GoogleFonts.cairo(color: kTextMedium)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final user = _supabase.auth.currentUser;
               setState(() {
                 _devices.removeWhere((d) => d['isCurrent'] != 'true');
               });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'تم تسجيل الخروج من جميع الأجهزة الأخرى بنجاح',
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.cairo(),
+              if (user != null) {
+                try {
+                  await _supabase
+                      .from('student_devices')
+                      .delete()
+                      .eq('student_id', user.id);
+                } catch (_) {}
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'تم تسجيل الخروج من جميع الأجهزة الأخرى بنجاح',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.cairo(),
+                    ),
+                    backgroundColor: kSuccess,
                   ),
-                  backgroundColor: kSuccess,
-                ),
-              );
+                );
+              }
             },
             child: Text(
               'تسجيل خروج الكل',
@@ -161,6 +146,70 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        _devices.clear();
+        _securityLogs.clear();
+
+        _twoFactorEnabled = user.userMetadata?['two_factor_enabled'] == true;
+
+        _devices.add({
+          'id': 'current',
+          'name': 'الجهاز الحالي',
+          'os': 'نشط الآن',
+          'lastActive': 'نشط الآن',
+          'isCurrent': 'true',
+        });
+
+        try {
+          final sessionsRes = await _supabase
+              .from('student_devices')
+              .select('id, device_platform, created_at')
+              .eq('student_id', user.id);
+          if (sessionsRes != null) {
+            for (final d in sessionsRes as List) {
+              _devices.add({
+                'id': d['id']?.toString() ?? '',
+                'name': d['device_platform'] == 'android' ? 'جهاز أندرويد' : 'جهاز iOS',
+                'os': d['device_platform'] ?? 'غير معروف',
+                'lastActive': d['created_at']?.toString().split('T')[0] ?? 'غير معروف',
+                'isCurrent': 'false',
+              });
+            }
+          }
+        } catch (_) {}
+
+        if (user.lastSignInAt != null) {
+          _securityLogs.add({
+            'event': 'تسجيل دخول ناجح',
+            'device': 'تطبيق الهاتف',
+            'time': user.lastSignInAt!.split('T')[0],
+            'status': 'success',
+          });
+        }
+        _securityLogs.add({
+          'event': 'تحديث إعدادات الحساب',
+          'device': 'تطبيق الهاتف',
+          'time': user.updatedAt?.split('T')[0] ?? DateTime.now().toIso8601String().split('T')[0],
+          'status': 'info',
+        });
+      }
+    } catch (e) {
+      setState(() { _errorMessage = 'فشل تحميل بيانات الأمان'; });
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
   }
 
   @override
@@ -180,7 +229,16 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: kPrimaryTeal))
+          : _errorMessage.isNotEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text(_errorMessage, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: kError, fontSize: 14)),
+                  ),
+                )
+              : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(

@@ -92,28 +92,37 @@ class _ReportsDashboardScreenState extends State<ReportsDashboardScreen> {
         ),
       ];
 
-      // GPA Trend mock series for showcase
+      // GPA Trend series calculated from cohort data
+      final Map<String, List<double>> cohortGpas = {};
+      for (final s in students) {
+        final year = s['enrollment_year']?.toString();
+        if (year != null && year.isNotEmpty) {
+          final gpaVal = s['calculated_gpa'] ?? s['cumulative_gpa'];
+          final gpa = double.tryParse(gpaVal?.toString() ?? '') ?? 0.0;
+          if (gpa > 0) {
+            cohortGpas.putIfAbsent(year, () => []).add(gpa);
+          }
+        }
+      }
+
+      final List<AcChartPoint> points = [];
+      int chartIdx = 1;
+      final sortedYears = cohortGpas.keys.toList()..sort();
+      for (final yr in sortedYears) {
+        final gpaList = cohortGpas[yr]!;
+        final avg = gpaList.reduce((a, b) => a + b) / gpaList.length;
+        points.add(AcChartPoint(x: chartIdx.toDouble(), y: double.parse(avg.toStringAsFixed(2)), label: 'دفعة $yr'));
+        chartIdx++;
+      }
+
       _gpaTrendSeries = [
-        const AcChartSeries(
-          label: 'متوسط دفعة 2024',
-          points: [
-            AcChartPoint(x: 1, y: 2.8, label: 'الفصل 1'),
-            AcChartPoint(x: 2, y: 2.9, label: 'الفصل 2'),
-            AcChartPoint(x: 3, y: 3.1, label: 'الفصل 3'),
-            AcChartPoint(x: 4, y: 3.2, label: 'الفصل 4'),
+        AcChartSeries(
+          label: 'متوسط معدل الدفعات',
+          points: points.isNotEmpty ? points : [
+            const AcChartPoint(x: 1, y: 3.0, label: 'لا توجد دفعات'),
           ],
           color: AppColors.primary500,
-        ),
-        const AcChartSeries(
-          label: 'متوسط دفعة 2025',
-          points: [
-            AcChartPoint(x: 1, y: 2.6, label: 'الفصل 1'),
-            AcChartPoint(x: 2, y: 2.75, label: 'الفصل 2'),
-            AcChartPoint(x: 3, y: 2.9, label: 'الفصل 3'),
-            AcChartPoint(x: 4, y: 3.05, label: 'الفصل 4'),
-          ],
-          color: AppColors.secondary500,
-        ),
+        )
       ];
 
       setState(() {

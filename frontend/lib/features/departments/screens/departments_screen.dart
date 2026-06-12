@@ -10,7 +10,7 @@ import '../../../shared/widgets/widgets.dart';
 import '../../../data/models/department_model.dart';
 import '../../../data/models/program_model.dart';
 import '../cubit/departments_cubit.dart';
-import 'add_edit_department_dialog.dart';
+import '../widgets/add_edit_department_dialog.dart';
 
 class DepartmentsScreen extends StatefulWidget {
   const DepartmentsScreen({super.key});

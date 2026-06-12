@@ -21,6 +21,8 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
+  static final ApiClient instance = ApiClient();
+
   final String baseUrl;
   final SupabaseClient supabase;
   final Dio _dio;

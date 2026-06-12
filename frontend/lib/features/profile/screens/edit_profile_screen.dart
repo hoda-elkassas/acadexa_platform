@@ -1,6 +1,7 @@
 // file: lib/features/profile/screens/edit_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -13,18 +14,22 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  final _supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
-  final _phoneController = TextEditingController(text: '01012345678');
+  late TextEditingController _phoneController;
 
   bool _isSaving = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
     _emailController = TextEditingController(text: widget.email);
+    final user = _supabase.auth.currentUser;
+    _phoneController = TextEditingController(text: user?.userMetadata?['phone']?.toString() ?? '');
   }
 
   @override
@@ -36,37 +41,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _saveChanges() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() { _isSaving = true; _errorMessage = ''; });
 
-    await Future.delayed(const Duration(seconds: 1500));
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        await _supabase
+            .from('app_users')
+            .update({
+              'full_name': _nameController.text,
+              'email': _emailController.text,
+            })
+            .eq('id', user.id);
 
-    if (mounted) {
-      setState(() {
-        _isSaving = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم تحديث الملف الشخصي بنجاح',
-            textAlign: TextAlign.right,
-            style: GoogleFonts.cairo(),
+        await _supabase.auth.updateUser(
+          UserAttributes(
+            data: {
+              'full_name': _nameController.text,
+              'phone': _phoneController.text,
+            },
           ),
-          backgroundColor: kSuccess,
-        ),
-      );
+        );
+      }
 
-      // Return the updated data
-      Navigator.of(context).pop({
-        'name': _nameController.text,
-        'email': _emailController.text,
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حفظ التغييرات بنجاح', textAlign: TextAlign.right)),
+        );
+        Navigator.of(context).pop({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isSaving = false; _errorMessage = 'فشل حفظ البيانات: ${e.toString()}'; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل حفظ البيانات: ${e.toString()}', textAlign: TextAlign.right), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() { _isSaving = false; });
     }
   }
 

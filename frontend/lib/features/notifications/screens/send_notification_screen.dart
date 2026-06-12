@@ -1,6 +1,7 @@
 // file: lib/features/notifications/screens/send_notification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../error_handling/screens/success_screen.dart';
 
@@ -12,6 +13,8 @@ class SendNotificationScreen extends StatefulWidget {
 }
 
 class _SendNotificationScreenState extends State<SendNotificationScreen> {
+  final _supabase = Supabase.instance.client;
+
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
@@ -156,30 +159,43 @@ class _SendNotificationScreenState extends State<SendNotificationScreen> {
   }
 
   void _sendNotification() async {
-    setState(() {
-      _isSending = true;
-    });
-
-    // Simulated API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        _isSending = false;
+    setState(() { _isSending = true; });
+    try {
+      final user = _supabase.auth.currentUser;
+      await _supabase.from('notification_history').insert({
+        'student_id': user?.id ?? 'unknown',
+        'title': _titleController.text,
+        'body': _bodyController.text,
+        'type': _notificationType,
+        'audience': _audienceTargets.join(', '),
+        'scheduled_at': _isScheduled && _selectedDate != null
+            ? '${_selectedDate!.toIso8601String().split('T').first} ${_selectedTime?.format(context)}'
+            : null,
+        'sent_by': user?.id ?? 'system',
+        'status': 'sent',
       });
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => SuccessScreen(
-            title: _isScheduled ? 'تمت جدولة الإشعار بنجاح!' : 'تم إرسال الإشعار بنجاح!',
-            subtitle: _isScheduled
-                ? 'تم حفظ الإشعار وجدولته للبث التلقائي في الموعد المحدد.'
-                : 'تم بث الإشعار بنجاح لكافة المستخدمين في الفئة المستهدفة.',
-            primaryButtonLabel: 'العودة للرئيسية',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+      if (mounted) {
+        setState(() { _isSending = false; });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => SuccessScreen(
+              title: _isScheduled ? 'تمت جدولة الإشعار بنجاح!' : 'تم إرسال الإشعار بنجاح!',
+              subtitle: _isScheduled
+                  ? 'تم حفظ الإشعار وجدولته للبث التلقائي في الموعد المحدد.'
+                  : 'تم بث الإشعار بنجاح لكافة المستخدمين في الفئة المستهدفة.',
+              primaryButtonLabel: 'العودة للرئيسية',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isSending = false; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل إرسال الإشعار: ${e.toString()}', textAlign: TextAlign.right), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

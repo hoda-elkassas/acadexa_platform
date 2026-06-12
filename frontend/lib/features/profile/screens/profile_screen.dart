@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/router/app_router.dart';
 import 'edit_profile_screen.dart';
 import '../../notifications/screens/notification_settings_screen.dart';
 import '../../security/screens/security_settings_screen.dart';
@@ -18,10 +20,62 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = 'م. مصطفى الشريف';
-  String _userEmail = 'mostafa.elsharif@acadexa.edu.eg';
-  final String _userRole = 'مشرف النظام';
+  final _supabase = Supabase.instance.client;
+  String _userName = '';
+  String _userEmail = '';
+  String _userRole = '';
   bool _isUploadingPhoto = false;
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() { _isLoading = true; _errorMessage = ''; });
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) { setState(() { _isLoading = false; }); return; }
+      setState(() {
+        _userName = user.userMetadata?['full_name'] as String? ?? user.email?.split('@').first ?? 'مستخدم';
+        _userEmail = user.email ?? '';
+        _userRole = user.userMetadata?['role'] as String? ?? '';
+      });
+
+      // Try to get more profile data from app_users
+      try {
+        final res = await _supabase
+            .from('app_users')
+            .select('full_name, email, system_role')
+            .eq('id', user.id)
+            .single();
+        setState(() {
+          _userName = res['full_name'] as String? ?? _userName;
+          _userEmail = res['email'] as String? ?? _userEmail;
+          final roleKey = res['system_role'] as String? ?? '';
+          if (roleKey.isNotEmpty) {
+            final roleLabels = {
+              'SYSTEM_MANAGEMENT': 'مدير النظام',
+              'DEVELOPER': 'مطور',
+              'ACADEMIC_OPERATIONS': 'عمليات أكاديمية',
+              'ACADEMIC_ADVISING': 'مرشد أكاديمي',
+              'DASHBOARD_VIEWER': 'مشاهد لوحة البيانات',
+              'ANALYTICS_AND_REPORTING': 'تحليل وتقارير',
+              'AUTHENTICATED': 'مستخدم',
+            };
+            _userRole = roleLabels[roleKey] ?? roleKey;
+          }
+        });
+      } catch (_) {}
+    } catch (e) {
+      setState(() { _errorMessage = 'فشل تحميل البيانات: ${e.toString()}'; });
+    } finally {
+      if (mounted) setState(() { _isLoading = false; });
+    }
+  }
 
   void _zoomProfilePhoto() {
     showDialog(
@@ -49,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     // Simulated picker & upload
-    await Future.delayed(const Duration(seconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (mounted) {
       setState(() {
@@ -133,10 +187,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text('إلغاء', style: GoogleFonts.cairo(color: kTextMedium)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              // Simulated log out (navigate back)
-              Navigator.of(context).pop();
+              await _supabase.auth.signOut();
+              if (mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+              }
             },
             child: Text(
               'تسجيل خروج',
@@ -209,7 +265,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage.isNotEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _errorMessage,
+                          style: GoogleFonts.cairo(color: kError),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryBlue,
+                            foregroundColor: kWhite,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
         child: Column(
           children: [
             // Profile Header Card
@@ -313,21 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // Statistics Panel (KPIs)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              color: kWhite,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatItem('المتابعون', '1,245'),
-                  Container(width: 1, height: 32, color: kDivider),
-                  _buildStatItem('المنشورات', '84'),
-                  Container(width: 1, height: 32, color: kDivider),
-                  _buildStatItem('التقييم', '4.9/5'),
-                ],
-              ),
-            ),
+
 
             const SizedBox(height: 16),
 
@@ -500,28 +570,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: kTextDark,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.cairo(
-            fontSize: 11,
-            color: kTextMedium,
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildMenuCard(List<Widget> items) {
     return Container(
