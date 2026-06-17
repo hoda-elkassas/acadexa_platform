@@ -69,7 +69,7 @@ class _FaqScreenState extends State<FaqScreen> {
     try {
       final client = Supabase.instance.client;
       final res = await client.from('faqs').select('question, answer, category');
-      if (res != null && (res as List).isNotEmpty) {
+      if ((res as List).isNotEmpty) {
         final dbList = (res as List).map((item) {
           final m = item as Map<String, dynamic>;
           return {

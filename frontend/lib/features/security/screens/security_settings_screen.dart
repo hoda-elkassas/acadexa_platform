@@ -177,7 +177,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               .from('student_devices')
               .select('id, device_platform, created_at')
               .eq('student_id', user.id);
-          if (sessionsRes != null) {
+          if (sessionsRes.isNotEmpty) {
             for (final d in sessionsRes as List) {
               _devices.add({
                 'id': d['id']?.toString() ?? '',

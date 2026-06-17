@@ -49,7 +49,6 @@ class _GraduationTrackingScreenState extends State<GraduationTrackingScreen> {
     final completed = int.tryParse(_summary?['total_passed_hours']?.toString() ?? '0') ?? 0;
     final required = int.tryParse(_summary?['total_credit_hours']?.toString() ?? '136') ?? 136;
     final remaining = required - completed;
-    final progress = required > 0 ? completed / required : 0.0;
 
     final requirements = [
       {

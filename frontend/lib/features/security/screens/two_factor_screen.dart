@@ -17,7 +17,6 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isVerifying = false;
-  String _errorMessage = '';
 
   @override
   void initState() {
@@ -100,7 +99,7 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
 
   void _verifyAndEnable() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _isVerifying = true; _errorMessage = ''; });
+    setState(() { _isVerifying = true; });
     try {
       final client = Supabase.instance.client;
       await client.auth.updateUser(
@@ -122,7 +121,7 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() { _isVerifying = false; _errorMessage = 'فشل التحقق: ${e.toString()}'; });
+        setState(() { _isVerifying = false; });
       }
     }
   }

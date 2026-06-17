@@ -23,7 +23,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureConfirm = true;
 
   bool _isUpdating = false;
-  String _errorMessage = '';
   final _supabase = Supabase.instance.client;
 
   @override
@@ -62,7 +61,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _isUpdating = true; _errorMessage = ''; });
+    setState(() { _isUpdating = true; });
     try {
       await _supabase.auth.updateUser(
         UserAttributes(password: _newPasswordController.text),
@@ -78,7 +77,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() { _isUpdating = false; _errorMessage = 'فشل تغيير كلمة المرور: ${e.toString()}'; });
+        setState(() { _isUpdating = false; });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('فشل تغيير كلمة المرور: ${e.toString()}', textAlign: TextAlign.right, style: GoogleFonts.cairo()),

@@ -18,7 +18,6 @@ class _CoursesDetailsScreenState extends State<CoursesDetailsScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
   List<Map<String, dynamic>> _courses = [];
-  Map<String, dynamic>? _summary;
 
   @override
   void initState() {
@@ -30,10 +29,8 @@ class _CoursesDetailsScreenState extends State<CoursesDetailsScreen> {
     setState(() { _isLoading = true; _errorMessage = ''; });
     try {
       final userId = _supabase.auth.currentUser?.id ?? '';
-      final summaryRes = await _supabase.from('student_full_summary').select().eq('id', userId).maybeSingle();
       final coursesRes = await _supabase.from('student_courses').select().eq('student_id', userId);
       setState(() {
-        _summary = summaryRes;
         _courses = List<Map<String, dynamic>>.from(coursesRes as List);
         _isLoading = false;
       });

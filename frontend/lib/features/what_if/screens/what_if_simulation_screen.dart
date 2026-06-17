@@ -19,12 +19,9 @@ class _WhatIfSimulationScreenState extends State<WhatIfSimulationScreen> {
   bool _simulating = false;
   String _errorMessage = '';
   Map<String, dynamic>? _summary;
-  List<Map<String, dynamic>> _planCourses = [];
 
   final _addHoursController = TextEditingController();
   final _newGpaController = TextEditingController();
-  int _extraHours = 0;
-  double _whatIfGpa = 0.0;
   double? _simulatedGpa;
   int? _simulatedHours;
   bool? _wouldGraduate;
@@ -72,8 +69,6 @@ class _WhatIfSimulationScreenState extends State<WhatIfSimulationScreen> {
 
     setState(() {
       _simulating = true;
-      _extraHours = extraHours;
-      _whatIfGpa = targetGpa;
     });
 
     // Simulate: what if student gets targetGpa in extraHours courses

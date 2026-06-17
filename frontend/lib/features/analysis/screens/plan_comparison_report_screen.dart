@@ -16,7 +16,6 @@ class PlanComparisonReportScreen extends StatefulWidget {
 class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
-  String _errorMessage = '';
   List<Map<String, dynamic>> _plans = [];
   String? _planA;
   String? _planB;
@@ -29,19 +28,19 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
   }
 
   Future<void> _loadPlans() async {
-    setState(() { _isLoading = true; _errorMessage = ''; });
+    setState(() { _isLoading = true; });
     try {
       final res = await _supabase.from('study_plans').select('id, name, department_id');
       _plans = List<Map<String, dynamic>>.from(res as List);
       setState(() => _isLoading = false);
     } catch (e) {
-      setState(() { _errorMessage = 'فشل تحميل الخطط: ${e.toString()}'; _isLoading = false; });
+      setState(() { _isLoading = false; });
     }
   }
 
   Future<void> _compare() async {
     if (_planA == null || _planB == null) return;
-    setState(() { _isLoading = true; _errorMessage = ''; });
+    setState(() { _isLoading = true; });
     try {
       final planARes = await _supabase.from('study_plans').select('*').eq('id', _planA!).single();
       final planBRes = await _supabase.from('study_plans').select('*').eq('id', _planB!).single();
@@ -76,7 +75,7 @@ class _PlanComparisonReportScreenState extends State<PlanComparisonReportScreen>
         _isLoading = false;
       });
     } catch (e) {
-      setState(() { _errorMessage = 'فشل المقارنة: ${e.toString()}'; _isLoading = false; });
+      setState(() { _isLoading = false; });
     }
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/app_spacing.dart';
-import '../../../core/themes/app_radius.dart';
 import '../../../core/themes/app_typography.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/analysis_service.dart';

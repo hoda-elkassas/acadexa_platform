@@ -188,10 +188,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              final navigator = Navigator.of(context);
+              navigator.pop();
               await _supabase.auth.signOut();
               if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+                navigator.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
               }
             },
             child: Text(

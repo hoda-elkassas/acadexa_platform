@@ -21,7 +21,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController;
 
   bool _isSaving = false;
-  String _errorMessage = '';
 
   @override
   void initState() {
@@ -43,7 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() { _isSaving = true; _errorMessage = ''; });
+    setState(() { _isSaving = true; });
 
     try {
       final user = _supabase.auth.currentUser;
@@ -78,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() { _isSaving = false; _errorMessage = 'فشل حفظ البيانات: ${e.toString()}'; });
+        setState(() { _isSaving = false; });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('فشل حفظ البيانات: ${e.toString()}', textAlign: TextAlign.right), backgroundColor: Colors.red),
         );

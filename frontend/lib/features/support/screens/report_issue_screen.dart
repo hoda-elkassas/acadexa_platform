@@ -18,7 +18,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   final _descriptionController = TextEditingController();
   
   bool _isSending = false;
-  String _errorMessage = '';
   bool _hasAttachment = false;
 
   final List<String> _issueTypes = [
@@ -48,7 +47,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
       );
       return;
     }
-    setState(() { _isSending = true; _errorMessage = ''; });
+    setState(() { _isSending = true; });
     try {
       // Simulate API call - would insert into support_tickets table when it exists
       await Future.delayed(const Duration(seconds: 2));
@@ -66,7 +65,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() { _isSending = false; _errorMessage = 'فشل إرسال البلاغ: ${e.toString()}'; });
+        setState(() { _isSending = false; });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('فشل إرسال البلاغ: ${e.toString()}', textAlign: TextAlign.right, style: GoogleFonts.cairo()), backgroundColor: Colors.red),
         );
